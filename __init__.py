@@ -1,3 +1,17 @@
+bl_info = {
+    "name": "Global lightning Setup",
+    "author": "Nicolas Priniotakis (Nikos)",
+    "version": (0,0,0,1),
+    "blender": (2, 7, 6, 0),
+    "api": 44539,
+    "category": "Render",
+    "location": "Properties > World",
+    "description": "Easy setup for HDRI environnement mapping",
+    "warning": "",
+    "wiki_url": "",
+    "tracker_url": "",}
+
+# --------------------------------------------------------------
 import bpy, pickle, getpass,os
 
 global nodes, node_math, node_map, new_path
@@ -6,8 +20,6 @@ try:
     new_path = pickle.load( open( 'gls_prefs', "rb" ) )
 except:
     new_path = '//'
-    
-print(new_path)
 
 # good
 
