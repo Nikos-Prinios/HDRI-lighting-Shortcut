@@ -11,17 +11,13 @@ bl_info = {
     "wiki_url": "",
     "tracker_url": "",}
 
-# --------------------------------------------------------------
 import bpy, pickle, getpass,os
-
 global nodes, node_math, node_map, new_path
 
 try:
     new_path = pickle.load( open( 'gls_prefs', "rb" ) )
 except:
     new_path = '//'
-
-# good
 
 def update_pref(): 
     global new_path
@@ -50,7 +46,7 @@ def setup(img_path):
     bpy.context.space_data.tree_type = 'ShaderNodeTree'
     bpy.context.space_data.shader_type = 'WORLD'
 
-    nw_world = bpy.data.worlds.new("custom_hdri_setup")
+    nw_world = bpy.data.worlds.new("Global Environnement Setup")
     bpy.context.scene.world = nw_world
     bpy.context.scene.world.use_nodes = True
     
@@ -85,7 +81,6 @@ def setup(img_path):
     node_out = nodes.new('ShaderNodeOutputWorld')
     node_out.location = 800,0
 
-
     #create links
     links = tree.links
     link0 = links.new(node_coo.outputs[0],node_map.inputs[0])
@@ -97,10 +92,9 @@ def setup(img_path):
 
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
-    #end
     bpy.context.area.type = 'PROPERTIES'
 
-    # ---------------------------------------
+
 
 class hdri_map(bpy.types.Panel):
     bl_idname = "OBJECT_PT_sample"
@@ -112,7 +106,6 @@ class hdri_map(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         scene = bpy.context.scene
-        
         row = layout.row()      
         row.operator("nodes.img", icon="TRIA_RIGHT")
         row.prop(scene, "visible")
@@ -148,7 +141,6 @@ class OBJECT_OT_load_img(bpy.types.Operator):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
-        #return {'FINISHED'}
         
 def register():
     bpy.utils.register_class(hdri_map)
