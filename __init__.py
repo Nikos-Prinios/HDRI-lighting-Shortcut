@@ -1,8 +1,19 @@
-import bpy
+import bpy, pickle, getpass,os
 
-global nodes, node_math, node_map
+global nodes, node_math, node_map, new_path
+
+try:
+    new_path = pickle.load( open( 'gls_prefs', "rb" ) )
+except:
+    new_path = '//'
+    
+print(new_path)
 
 # good
+
+def update_pref(): 
+    global new_path
+    pickle.dump((new_path), open( 'gls_prefs', "wb" ) )
 
 def update_orientation(self, context):
     node_map.rotation[2] = self.z_orientation
@@ -112,13 +123,16 @@ class OBJECT_OT_load_img(bpy.types.Operator):
         )    
         
     def execute(self,context):
-        global img_path
+        global img_path, new_path
         img_path = self.properties.filepath
+        new_path = os.path.dirname(img_path)
+        update_pref()
         setup(img_path)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.directory = "//"
+        global new_path
+        self.directory = new_path
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
