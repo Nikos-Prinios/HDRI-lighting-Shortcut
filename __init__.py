@@ -149,6 +149,8 @@ class hdri_map(bpy.types.Panel):
         row.prop(scene, "visible")
         if img_path is not None:
             row = layout.row()
+            row.label(os.path.basename(img_path), icon='FILE_IMAGE')
+            row = layout.row()
             row.prop(scene, "light_strength")
             row = layout.row()
             row.prop(scene, "z_orientation")
