@@ -33,7 +33,10 @@ img_path = None
 # ----------------- functions --------------------
 def update_pref(): 
     global folder_path
-    pickle.dump((folder_path), open( 'hdri_prefs', "wb" ) )
+    try:
+        pickle.dump((folder_path), open( 'hdri_prefs', "wb" ) )
+    except:
+        folder_path = '//'
 
 def update_orientation(self, context):
     try :
