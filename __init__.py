@@ -5,7 +5,7 @@
 #  as published by Sam Hocevar. See http://www.wtfpl.net/ for more details.
 
 bl_info = {
-    "name": "Global lighting Shortcut",
+    "name": "HDRI lighting Shortcut",
     "author": "Nicolas Priniotakis (Nikos)",
     "version": (0,0,0,1),
     "blender": (2, 7, 6, 0),
@@ -134,7 +134,7 @@ reset()
 # ---------------------- GUI -----------------------
 class hdri_map(bpy.types.Panel):
     bl_idname = "OBJECT_PT_sample"
-    bl_label = "Global Lighting Shortcut"
+    bl_label = "HDRI Lighting Shortcut"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
