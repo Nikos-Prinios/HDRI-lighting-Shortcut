@@ -31,6 +31,47 @@ print("HDRI folder : " + folder_path)
 img_path = None
     
 # ----------------- functions --------------------
+
+def img_exists(img):
+    for index, i in enumerate(bpy.data.images):
+        if i.name == img :
+            return True
+    return False
+
+def img_index(img):
+    for index, i in enumerate(bpy.data.images):
+        if i.name == img :
+            return index
+    return None
+
+def current_bkgnd():
+    nodes = bpy.context.scene.world.node_tree.nodes
+    for node in nodes:
+        if node.name == "HLS_ENV":
+            return node.image.name
+    
+    
+def node_exists(n):
+    nodes = bpy.context.scene.world.node_tree.nodes
+    for node in nodes:
+        if node.name == n:   
+            return True
+    return False
+
+def node_tree_ok():
+    #bpy.context.area.type = 'NODE_EDITOR'
+    #bpy.context.space_data.tree_type = 'ShaderNodeTree'
+    #bpy.context.space_data.shader_type = 'WORLD'
+
+    current_world = bpy.context.scene.world
+    if current_world.name == "HDRI Lighting Shortcut":
+        if node_exists("HLS_ENV"):
+            if node_exists("HLS_MATH"):
+                if node_exists("HLS_MAPPING"):
+                    return True
+    return False
+
+
 def update_pref(): 
     global folder_path
     try:
@@ -67,23 +108,54 @@ def reset():
     except:
         pass
 
+def clear_node_tree():
+    try:
+        nodes = bpy.context.scene.world.node_tree.nodes
+        for node in nodes:
+            nodes.remove(node)
+    except:
+        pass
+
+def node_tree_exists(world_name):
+    for w in bpy.data.worlds:
+        if w.name == world_name:
+            return True
+    return False
+
+def world_num(world_name):
+    for index, w in enumerate(bpy.data.worlds):
+        if w.name == world_name:
+            return index
 
 def setup(img_path):
     global nodes,node_math, node_map
+    
     bpy.context.area.type = 'NODE_EDITOR'
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.space_data.tree_type = 'ShaderNodeTree'
     bpy.context.space_data.shader_type = 'WORLD'
-
-    nw_world = bpy.data.worlds.new("Global Lightning Shortcut")
-    bpy.context.scene.world = nw_world
-    bpy.context.scene.world.use_nodes = True
+    tree_name = "HDRI Lighting Shortcut"
     
+    # Create the new world if it doesn't exists
+    if node_tree_exists(tree_name):
+        bpy.context.scene.world.use_nodes = True
+        nw_world = bpy.data.worlds[world_num(tree_name)]
+        bpy.context.scene.world = nw_world
+        clear_node_tree()
+    else:
+        nw_world = bpy.data.worlds.new(tree_name)
+        bpy.context.scene.world = nw_world
+        bpy.context.scene.world.use_nodes = True
+
     nodes = nw_world.node_tree.nodes
     tree = nw_world.node_tree
-
+    img = os.path.basename(img_path)
+    
     try:
-        img = bpy.data.images.load(img_path)
+        if not img_exists(img):
+            img = bpy.data.images.load(img_path)
+        else:
+            img = bpy.data.images[img_index(img)]
     except:
         raise NameError("Cannot load image %s" % path)
 
@@ -94,13 +166,16 @@ def setup(img_path):
     node_coo.location = -400,0
 
     node_map = nodes.new('ShaderNodeMapping')
+    node_map.name = "HLS_MAPPING"
     node_map.location = -200,0
 
     node_env = nodes.new('ShaderNodeTexEnvironment')
+    node_env.name = "HLS_ENV"
     node_env.image = img
     node_env.location = 200,0
 
     node_math = nodes.new('ShaderNodeMath')
+    node_math.name = "HLS_MATH"
     node_math.location = 400,-100
     node_math.operation = 'ADD'
 
@@ -143,16 +218,21 @@ class hdri_map(bpy.types.Panel):
     bl_context = "world"
     
     def draw(self, context):
-        global img_path
+        try:
+            img = current_bkgnd()
+        except:
+            img = ''
         layout = self.layout
         scene = bpy.context.scene
         
         row = layout.row()      
         row.operator("nodes.img", icon="TRIA_RIGHT")
-        row.prop(scene, "visible")
-        if img_path is not None:
+        
+        #if img_path is not None:
+        if node_tree_ok():
+            row.prop(scene, "visible")
             row = layout.row()
-            row.label(os.path.basename(img_path), icon='FILE_IMAGE')
+            row.label(os.path.basename(img), icon='FILE_IMAGE')
             row = layout.row()
             row.prop(scene, "light_strength")
             row = layout.row()
