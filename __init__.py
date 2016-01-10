@@ -20,7 +20,7 @@ bl_info = {
 import bpy, pickle, getpass, os
 
 global nodes, node_math, node_map, folder_path, pref, img_path, real_HDR, node_bkgnd
-
+real_HDR = False
 pref = os.path.expanduser('~/%s' % 'hdri_prefs')
 if not os.path.exists(pref):
     folder_path = '//'
