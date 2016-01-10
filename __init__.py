@@ -244,7 +244,7 @@ class OBJECT_OT_load_img(bpy.types.Operator):
     bl_description = "Load Image"
     bl_options = {'REGISTER'}
 
-    filter_glob = bpy.props.StringProperty(default="*.tif;*.png;*.jpeg;*.jpg;*.exr;*.hrd", options={'HIDDEN'}) 
+    filter_glob = bpy.props.StringProperty(default="*.tif;*.png;*.jpeg;*.jpg;*.exr;*.hdr", options={'HIDDEN'}) 
     filepath = bpy.props.StringProperty(name="File Path", description="Filepath used for importing files", maxlen= 1024, default= "")
     files = bpy.props.CollectionProperty(
         name="File Path",
