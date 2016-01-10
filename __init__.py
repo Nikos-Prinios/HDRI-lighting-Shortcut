@@ -241,6 +241,7 @@ class hdri_map(bpy.types.Panel):
             row.prop(scene, "visible")
             row = layout.row()
             row.label(os.path.basename(img), icon='FILE_IMAGE')
+            self.layout.operator("remove.setup")
             row = layout.row()
             row.prop(scene, "light_strength")
             row = layout.row()
@@ -275,6 +276,21 @@ class OBJECT_OT_load_img(bpy.types.Operator):
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+class OBJECT_OT_Remove_setup(bpy.types.Operator):
+    bl_idname = "remove.setup"
+    bl_label = "Unload image"
+ 
+    def execute(self, context):
+        tree_name = "HDRI Lighting Shortcut"
+        if node_tree_exists(tree_name):
+            nw_world = bpy.data.worlds[world_num(tree_name)]
+            bpy.context.scene.world = nw_world
+            clear_node_tree()
+            # stupid trick to force cycles to update the viewport
+            bpy.context.scene.world.light_settings.use_ambient_occlusion = not bpy.context.scene.world.light_settings.use_ambient_occlusion
+            bpy.context.scene.world.light_settings.use_ambient_occlusion = not bpy.context.scene.world.light_settings.use_ambient_occlusion
+        return{'RUNNING_MODAL'}    
+
 # ----------------- Registration -------------------     
 def register():
     bpy.utils.register_class(hdri_map)
@@ -283,6 +299,8 @@ def register():
  
 def unregister():
     bpy.utils.unregister_class(hdri_map)
+    bpy.utils.unregister_class(OBJECT_OT_load_img)
+    bpy.utils.unregister_class(OBJECT_OT_Remove_setup)
 
 if __name__ == "__main__":
     register()
