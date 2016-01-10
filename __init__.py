@@ -10,7 +10,7 @@ bl_info = {
     "version": (1,1,0,0),
     "blender": (2, 7, 6, 0),
     "api": 44539,
-    "category": "Render",
+    "category": "Material",
     "location": "Properties > World",
     "description": "Easy setup for HDRI global lightings",
     "warning": "",
