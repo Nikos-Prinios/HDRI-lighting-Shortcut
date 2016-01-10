@@ -7,7 +7,7 @@
 bl_info = {
     "name": "HDRI lighting Shortcut",
     "author": "Nicolas Priniotakis (Nikos)",
-    "version": (0,0,0,1),
+    "version": (1,1,0,0),
     "blender": (2, 7, 6, 0),
     "api": 44539,
     "category": "Render",
