@@ -19,7 +19,7 @@ bl_info = {
 
 import bpy, pickle, getpass, os
 
-global nodes, node_math, node_map, folder_path, pref, img_path, real_HDR, node_bkgnd
+global nodes, node_math, node_map, folder_path, pref, img_path, real_HDR, node_bkgnd, node_rgb
 real_HDR = False
 pref = os.path.expanduser('~/%s' % 'hdri_prefs')
 if not os.path.exists(pref):
@@ -83,7 +83,25 @@ def update_orientation(self, context):
         node_map.rotation[2] = (self.z_orientation * 0.0174533)
     except :
         pass
-    
+
+def update_r(self, context):
+    try :
+        node_rgb.inputs[0].default_value = ((self.color_r * 100)/255)/100
+    except :
+        pass
+
+def update_g(self, context):
+    try :
+        node_rgb.inputs[1].default_value = ((self.color_g * 100)/255)/100
+    except :
+        pass
+
+def update_b(self, context):
+    try :
+        node_rgb.inputs[2].default_value = ((self.color_b * 100)/255)/100
+    except :
+        pass
+
 def update_strength(self, context):
     global real_HDR
     #try :
@@ -108,6 +126,9 @@ def reset():
         bpy.context.scene.world.cycles_visibility.camera = False
         bpy.context.scene.light_strength = 1.0
         bpy.context.scene.z_orientation = 0.0
+        bpy.context.scene.color_r = 0
+        bpy.context.scene.color_g = 0
+        bpy.context.scene.color_b = 0
     except:
         pass
 
@@ -131,7 +152,7 @@ def world_num(world_name):
             return index
 
 def setup(img_path):
-    global nodes,node_math, node_bkgnd, node_map,real_HDR
+    global nodes,node_math, node_bkgnd, node_map,real_HDR, node_rgb
     
     bpy.context.area.type = 'NODE_EDITOR'
     bpy.context.scene.render.engine = 'CYCLES'
@@ -175,6 +196,15 @@ def setup(img_path):
     node_map.name = "HLS_MAPPING"
     node_map.location = -200,0
 
+    node_rgb = nodes.new("ShaderNodeCombineRGB")
+    node_rgb.name = 'Color_correction'
+    node_rgb.location = 200,200
+
+    node_add = nodes.new("ShaderNodeMixRGB")
+    node_add.blend_type = 'ADD'
+    node_add.inputs[0].default_value = 1
+    node_add.location = 400,200
+
     node_env = nodes.new('ShaderNodeTexEnvironment')
     node_env.name = "HLS_ENV"
     node_env.image = img
@@ -196,7 +226,9 @@ def setup(img_path):
     links = tree.links
     link0 = links.new(node_coo.outputs[0],node_map.inputs[0])
     link1 = links.new(node_map.outputs[0],node_env.inputs[0])
-    link2 = links.new(node_env.outputs[0],node_bkgnd.inputs[0])
+    linkz = links.new(node_rgb.outputs[0],node_add.inputs[1])
+    link2 = links.new(node_env.outputs[0],node_add.inputs[2])
+    linkb = links.new(node_add.outputs[0],node_bkgnd.inputs[0])
     if not real_HDR:
         link3 = links.new(node_env.outputs[0],node_math.inputs[0])
         link4 = links.new(node_math.outputs[0],node_bkgnd.inputs[1])
@@ -214,6 +246,10 @@ bpy.types.Scene.z_orientation = bpy.props.FloatProperty(name="Orientation",updat
 bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Strength",update=update_strength, default = 1)
 bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')  
 bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible",description="Let the background being visible by the camera",default = True)
+bpy.types.Scene.color_r = bpy.props.IntProperty(name="R",update=update_r, max = 255, min = 0, default = 0)
+bpy.types.Scene.color_g = bpy.props.IntProperty(name="G",update=update_g, max = 255, min = 0, default = 0)
+bpy.types.Scene.color_b = bpy.props.IntProperty(name="B",update=update_b, max = 255, min = 0, default = 0)
+
 
 reset()
 
@@ -238,14 +274,23 @@ class hdri_map(bpy.types.Panel):
         
         #if img_path is not None:
         if node_tree_ok():
-            row.prop(scene, "visible")
-            row = layout.row()
-            row.label(os.path.basename(img), icon='FILE_IMAGE')
+            
             self.layout.operator("remove.setup")
-            row = layout.row()
+
+            box = layout.box()
+            row = box.row() 
+            row.label(os.path.basename(img), icon='FILE_IMAGE')
+            row.prop(scene, "visible")
+            row = box.row()
             row.prop(scene, "light_strength")
-            row = layout.row()
+            #row = layout.row()
             row.prop(scene, "z_orientation")
+            box.label("Color Correction")
+            row = box.row()
+            row.prop(scene, "color_r")
+            row.prop(scene, "color_g")
+            row.prop(scene, "color_b")
+
 
 class OBJECT_OT_load_img(bpy.types.Operator):  
     bl_label = "Load Image"
@@ -278,7 +323,7 @@ class OBJECT_OT_load_img(bpy.types.Operator):
 
 class OBJECT_OT_Remove_setup(bpy.types.Operator):
     bl_idname = "remove.setup"
-    bl_label = "Unload image"
+    bl_label = "Delete"
  
     def execute(self, context):
         tree_name = "HDRI Lighting Shortcut"
