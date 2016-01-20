@@ -19,7 +19,8 @@ bl_info = {
 
 import bpy, pickle, getpass, os
 
-global nodes, node_math, node_map, folder_path, pref, img_path, real_HDR, node_bkgnd, node_rgb
+global nodes,folder_path, pref, img_path, real_HDR, color_correc
+global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out
 real_HDR = False
 pref = os.path.expanduser('~/%s' % 'hdri_prefs')
 if not os.path.exists(pref):
@@ -27,7 +28,7 @@ if not os.path.exists(pref):
 else:
     folder_path = pickle.load( open( pref, "rb" ) )
 print("HDRI folder : " + folder_path)
-
+color_correc = False
 img_path = None
     
 # ----------------- functions --------------------
@@ -54,9 +55,34 @@ def current_bkgnd():
 def node_exists(n):
     nodes = bpy.context.scene.world.node_tree.nodes
     for node in nodes:
-        if node.name == n:   
+        if node.name == n:
             return True
     return False
+
+    
+def node_attrib():
+    global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out
+    nodes = bpy.context.scene.world.node_tree.nodes
+    for node in nodes:
+        if node.name == 'coordinate':
+            node_coo = node
+        if node.name == 'HLS_MAPPING':
+            node_map = node
+        if node.name == 'Color_correction':
+            node_rgb = node
+        if node.name == 'RGB_ADD':
+            node_add = node
+        if node.name == 'saturation':
+            node_sat = node
+        if node.name == 'HLS_ENV':
+            node_env = node
+        if node.name == 'HLS_MATH':
+            node_math = node
+        if node.name == 'bkgnd':
+            node_bkgnd = node
+        if node.name == 'output':
+            node_out = node
+            
 
 def node_tree_ok():
     #bpy.context.area.type = 'NODE_EDITOR'
@@ -65,11 +91,17 @@ def node_tree_ok():
 
     current_world = bpy.context.scene.world
     if current_world.name == "HDRI Lighting Shortcut":
-        if node_exists("HLS_ENV"): 
+        if node_exists("coordinate"):
             if node_exists("HLS_MAPPING"):
-                return True
+                if node_exists("Color_correction"):
+                    if node_exists("RGB_ADD"):
+                        if node_exists("saturation"):
+                            if node_exists("HLS_ENV"):
+                                if node_exists("bkgnd"):
+                                    if node_exists("output"):
+                                        node_attrib()
+                                        return True
     return False
-
 
 def update_pref(): 
     global folder_path
@@ -90,6 +122,18 @@ def update_r(self, context):
     except :
         pass
 
+def update_sat(self, context):
+    try :
+        node_sat.inputs[1].default_value = self.sat
+    except :
+        pass
+
+def update_hue(self, context):
+    try :
+        node_sat.inputs[0].default_value = self.hue
+    except :
+        pass
+
 def update_g(self, context):
     try :
         node_rgb.inputs[1].default_value = ((self.color_g * 100)/255)/100
@@ -104,13 +148,13 @@ def update_b(self, context):
 
 def update_strength(self, context):
     global real_HDR
-    #try :
-    if not real_HDR:
-        node_math.inputs[1].default_value = self.light_strength
-    else:
-        node_bkgnd.inputs[1].default_value = self.light_strength
-    #except :
-    #    pass
+    try :
+        if not real_HDR:
+            node_math.inputs[1].default_value = self.light_strength
+        else:
+            node_bkgnd.inputs[1].default_value = self.light_strength
+    except :
+        pass
     
 def update_visible(self, context):
     cam = bpy.context.scene.world.cycles_visibility
@@ -123,6 +167,7 @@ def update_visible(self, context):
 def reset():
     try:
         bpy.context.scene.visible = False
+        bpy.context.scene.colcor = False
         bpy.context.scene.world.cycles_visibility.camera = False
         bpy.context.scene.light_strength = 1.0
         bpy.context.scene.z_orientation = 0.0
@@ -140,6 +185,11 @@ def clear_node_tree():
     except:
         pass
 
+def update_colcor(self,context):
+    global color_correc
+    color_correc = not color_correc
+    
+
 def node_tree_exists(world_name):
     for w in bpy.data.worlds:
         if w.name == world_name:
@@ -152,7 +202,7 @@ def world_num(world_name):
             return index
 
 def setup(img_path):
-    global nodes,node_math, node_bkgnd, node_map,real_HDR, node_rgb
+    global nodes,node_math, node_bkgnd, node_map,real_HDR, node_rgb, node_sat
     
     bpy.context.area.type = 'NODE_EDITOR'
     bpy.context.scene.render.engine = 'CYCLES'
@@ -191,6 +241,7 @@ def setup(img_path):
 
     node_coo = nodes.new('ShaderNodeTexCoord')
     node_coo.location = -400,0
+    node_coo.name = 'coordinate'
 
     node_map = nodes.new('ShaderNodeMapping')
     node_map.name = "HLS_MAPPING"
@@ -203,31 +254,39 @@ def setup(img_path):
     node_add = nodes.new("ShaderNodeMixRGB")
     node_add.blend_type = 'ADD'
     node_add.inputs[0].default_value = 1
-    node_add.location = 400,200
+    node_add.location = 400,400
+    node_add.name = 'RGB_ADD'
+
+    node_sat = nodes.new("ShaderNodeHueSaturation")
+    node_sat.location = 400,200
+    node_sat.name = 'saturation'
 
     node_env = nodes.new('ShaderNodeTexEnvironment')
     node_env.name = "HLS_ENV"
     node_env.image = img
     node_env.location = 200,0
 
-    if not real_HDR:
-        node_math = nodes.new('ShaderNodeMath')
-        node_math.name = "HLS_MATH"
-        node_math.location = 400,-100
-        node_math.operation = 'ADD'
+    #if not real_HDR:
+    node_math = nodes.new('ShaderNodeMath')
+    node_math.name = "HLS_MATH"
+    node_math.location = 400,-100
+    node_math.operation = 'ADD'
 
     node_bkgnd = nodes.new('ShaderNodeBackground')
     node_bkgnd.location = 600,0
+    node_bkgnd.name = 'bkgnd'
 
     node_out = nodes.new('ShaderNodeOutputWorld')
     node_out.location = 800,0
+    node_out.name = 'output'
 
     #create links
     links = tree.links
     link0 = links.new(node_coo.outputs[0],node_map.inputs[0])
     link1 = links.new(node_map.outputs[0],node_env.inputs[0])
     linkz = links.new(node_rgb.outputs[0],node_add.inputs[1])
-    link2 = links.new(node_env.outputs[0],node_add.inputs[2])
+    link2 = links.new(node_env.outputs[0],node_sat.inputs[4])
+    linkh = links.new(node_sat.outputs[0],node_add.inputs[2])
     linkb = links.new(node_add.outputs[0],node_bkgnd.inputs[0])
     if not real_HDR:
         link3 = links.new(node_env.outputs[0],node_math.inputs[0])
@@ -249,6 +308,10 @@ bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Vi
 bpy.types.Scene.color_r = bpy.props.IntProperty(name="R",update=update_r, max = 255, min = 0, default = 0)
 bpy.types.Scene.color_g = bpy.props.IntProperty(name="G",update=update_g, max = 255, min = 0, default = 0)
 bpy.types.Scene.color_b = bpy.props.IntProperty(name="B",update=update_b, max = 255, min = 0, default = 0)
+bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation",update=update_sat, max = 2, min = 0, default = 1)
+bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue",update=update_hue, max = 1, min = 0, default = .5)
+bpy.types.Scene.colcor = bpy.props.BoolProperty(name="Correction",update=update_colcor, default = False)
+
 
 
 reset()
@@ -262,6 +325,7 @@ class hdri_map(bpy.types.Panel):
     bl_context = "world"
     
     def draw(self, context):
+        global color_correc
         try:
             img = current_bkgnd()
         except:
@@ -285,11 +349,16 @@ class hdri_map(bpy.types.Panel):
             row.prop(scene, "light_strength")
             #row = layout.row()
             row.prop(scene, "z_orientation")
-            box.label("Color Correction")
             row = box.row()
-            row.prop(scene, "color_r")
-            row.prop(scene, "color_g")
-            row.prop(scene, "color_b")
+            row.prop(scene, "colcor")
+            if color_correc == True:
+                row = box.row()
+                row.prop(scene, "sat")
+                row.prop(scene, "hue")
+                row = box.row()
+                row.prop(scene, "color_r")
+                row.prop(scene, "color_g")
+                row.prop(scene, "color_b")
 
 
 class OBJECT_OT_load_img(bpy.types.Operator):  
