@@ -174,6 +174,8 @@ def reset():
         bpy.context.scene.color_r = 0
         bpy.context.scene.color_g = 0
         bpy.context.scene.color_b = 0
+        bpy.context.scene.sat = 1
+        bpy.context.scene.hue = .5
     except:
         pass
 
