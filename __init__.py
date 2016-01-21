@@ -20,7 +20,7 @@ bl_info = {
 import bpy, pickle, getpass, os
 
 global nodes,folder_path, pref, img_path, real_HDR, color_correc
-global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out
+global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out,node_light_path
 real_HDR = False
 pref = os.path.expanduser('~/%s' % 'hdri_prefs')
 if not os.path.exists(pref):
@@ -61,7 +61,7 @@ def node_exists(n):
 
     
 def node_attrib():
-    global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out
+    global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out,node_light_path,node_reflexion
     nodes = bpy.context.scene.world.node_tree.nodes
     for node in nodes:
         if node.name == 'coordinate':
@@ -82,7 +82,10 @@ def node_attrib():
             node_bkgnd = node
         if node.name == 'output':
             node_out = node
-            
+        if node.name == 'light_path':
+            node_light_path = node
+        if node.name == 'reflexion':
+            node_reflexion = node
 
 def node_tree_ok():
     #bpy.context.area.type = 'NODE_EDITOR'
@@ -98,9 +101,11 @@ def node_tree_ok():
                         if node_exists("saturation"):
                             if node_exists("HLS_ENV"):
                                 if node_exists("bkgnd"):
-                                    if node_exists("output"):
-                                        node_attrib()
-                                        return True
+                                    if node_exists("light_path"):
+                                        if node_exists('reflexion')
+                                            if node_exists("output"):
+                                                node_attrib()
+                                                return True
     return False
 
 def update_pref(): 
@@ -204,7 +209,7 @@ def world_num(world_name):
             return index
 
 def setup(img_path):
-    global nodes,node_math, node_bkgnd, node_map,real_HDR, node_rgb, node_sat
+    global nodes,node_math, node_bkgnd, node_map,real_HDR, node_rgb, node_sat,node_reflexion,node_light_path
     
     bpy.context.area.type = 'NODE_EDITOR'
     bpy.context.scene.render.engine = 'CYCLES'
@@ -277,6 +282,14 @@ def setup(img_path):
     node_bkgnd = nodes.new('ShaderNodeBackground')
     node_bkgnd.location = 600,0
     node_bkgnd.name = 'bkgnd'
+
+    node_reflexion = nodes.new('ShaderNodeBackground')
+    node_reflexion.location = 600,-200
+    node_reflexion.name = 'reflexion'
+
+    node_light_path = nodes.new('ShaderNodeLightPath')
+    node_light_path.location = 600,400
+    node_light_path.name = 'light_path'
 
     node_out = nodes.new('ShaderNodeOutputWorld')
     node_out.location = 800,0
