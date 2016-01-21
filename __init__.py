@@ -115,6 +115,16 @@ def update_pref():
     except:
         folder_path = '//'
 
+def update_mirror(self, context):
+    global node_env
+    try:
+        if self.mirror == True:
+            node_env.projection = 'MIRROR_BALL'
+        else:
+            node_env.projection = 'EQUIRECTANGULAR'
+    except:
+        pass
+
 def update_orientation(self, context):
     try :
         node_map.rotation[2] = (self.z_orientation * 0.0174533)
@@ -176,6 +186,7 @@ def reset():
     try:
         bpy.context.scene.visible = False
         bpy.context.scene.colcor = False
+        bpy.context.scene.mirror = False
         bpy.context.scene.world.cycles_visibility.camera = False
         bpy.context.scene.light_strength = 1.0
         bpy.context.scene.z_orientation = 0.0
@@ -197,7 +208,10 @@ def clear_node_tree():
 
 def update_colcor(self,context):
     global color_correc
-    color_correc = not color_correc
+    if self.colcor == True:
+        color_correc = True
+    else:
+        color_correc = False
     
 
 def node_tree_exists(world_name):
@@ -338,6 +352,7 @@ bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation",update=update_sa
 bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue",update=update_hue, max = 1, min = 0, default = .5)
 bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion Intensity",update=update_reflexion, default = 1)
 bpy.types.Scene.colcor = bpy.props.BoolProperty(name="Adjustments",update=update_colcor, default = False)
+bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update_mirror, default = False)
 
 
 
@@ -388,6 +403,7 @@ class hdri_map(bpy.types.Panel):
                 row.prop(scene, "color_b")
                 row = box.row()
                 row.prop(scene,'reflexion')
+                row.prop(scene, "mirror")
 
 
 class OBJECT_OT_load_img(bpy.types.Operator):  
