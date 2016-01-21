@@ -102,7 +102,7 @@ def node_tree_ok():
                             if node_exists("HLS_ENV"):
                                 if node_exists("bkgnd"):
                                     if node_exists("light_path"):
-                                        if node_exists('reflexion')
+                                        if node_exists('reflexion'):
                                             if node_exists("output"):
                                                 node_attrib()
                                                 return True
@@ -168,6 +168,9 @@ def update_visible(self, context):
         self.light_strength += 0 #dirty trick to force the viewport to update
     except :
         pass
+
+def update_reflexion(self, context):
+    node_reflexion.inputs[1].default_value = self.reflexion
 
 def reset():
     try:
@@ -291,22 +294,30 @@ def setup(img_path):
     node_light_path.location = 600,400
     node_light_path.name = 'light_path'
 
+    node_ref_mix = nodes.new('ShaderNodeMixShader')
+    node_ref_mix.location = 800,0
+    node_ref_mix.name = 'ref_mix'
+
     node_out = nodes.new('ShaderNodeOutputWorld')
-    node_out.location = 800,0
+    node_out.location = 1000,0
     node_out.name = 'output'
 
     #create links
     links = tree.links
     link0 = links.new(node_coo.outputs[0],node_map.inputs[0])
     link1 = links.new(node_map.outputs[0],node_env.inputs[0])
-    linkz = links.new(node_rgb.outputs[0],node_add.inputs[1])
-    link2 = links.new(node_env.outputs[0],node_sat.inputs[4])
-    linkh = links.new(node_sat.outputs[0],node_add.inputs[2])
-    linkb = links.new(node_add.outputs[0],node_bkgnd.inputs[0])
+    link2 = links.new(node_rgb.outputs[0],node_add.inputs[1])
+    link3 = links.new(node_env.outputs[0],node_sat.inputs[4])
+    link4 = links.new(node_sat.outputs[0],node_add.inputs[2])
+    link5 = links.new(node_add.outputs[0],node_reflexion.inputs[0])
+    link6 = links.new(node_add.outputs[0],node_bkgnd.inputs[0])
+    link7 = links.new(node_light_path.outputs[3],node_ref_mix.inputs[0])
     if not real_HDR:
-        link3 = links.new(node_env.outputs[0],node_math.inputs[0])
-        link4 = links.new(node_math.outputs[0],node_bkgnd.inputs[1])
-    link5 = links.new(node_bkgnd.outputs[0],node_out.inputs[0])
+        link8 = links.new(node_env.outputs[0],node_math.inputs[0])
+        link9 = links.new(node_math.outputs[0],node_bkgnd.inputs[1])
+    link10 = links.new(node_bkgnd.outputs[0],node_ref_mix.inputs[1])
+    link11 = links.new(node_reflexion.outputs[0],node_ref_mix.inputs[2])
+    link12 = links.new(node_ref_mix.outputs[0],node_out.inputs[0])
 
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
@@ -325,7 +336,8 @@ bpy.types.Scene.color_g = bpy.props.IntProperty(name="G",update=update_g, max = 
 bpy.types.Scene.color_b = bpy.props.IntProperty(name="B",update=update_b, max = 255, min = 0, default = 0)
 bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation",update=update_sat, max = 2, min = 0, default = 1)
 bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue",update=update_hue, max = 1, min = 0, default = .5)
-bpy.types.Scene.colcor = bpy.props.BoolProperty(name="Correction",update=update_colcor, default = False)
+bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion Intensity",update=update_reflexion, default = 1)
+bpy.types.Scene.colcor = bpy.props.BoolProperty(name="Adjustments",update=update_colcor, default = False)
 
 
 
@@ -374,6 +386,8 @@ class hdri_map(bpy.types.Panel):
                 row.prop(scene, "color_r")
                 row.prop(scene, "color_g")
                 row.prop(scene, "color_b")
+                row = box.row()
+                row.prop(scene,'reflexion')
 
 
 class OBJECT_OT_load_img(bpy.types.Operator):  
