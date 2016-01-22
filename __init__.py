@@ -190,13 +190,30 @@ def reset():
         bpy.context.scene.world.cycles_visibility.camera = False
         bpy.context.scene.light_strength = 1.0
         bpy.context.scene.z_orientation = 0.0
-        bpy.context.scene.color_r = 0
-        bpy.context.scene.color_g = 0
-        bpy.context.scene.color_b = 0
-        bpy.context.scene.sat = 1
-        bpy.context.scene.hue = .5
+        self.color_r = 0
+        self.color_g = 0
+        self.color_b = 0
+        self.sat = 1
+        self.hue = .5
+        self.reflexion = 1
+        self.mirror = False
     except:
         pass
+
+def apply_parameters():
+    self = bpy.context.scene
+    context = bpy.context
+    update_reflexion(self,context)
+    update_visible(self,context)
+    update_strength(self,context)
+    update_r(self,context)
+    update_g(self,context)
+    update_b(self,context)
+    update_hue(self,context)
+    update_sat(self,context)
+    update_orientation(self,context)
+    update_mirror(self,context)
+
 
 def clear_node_tree():
     try:
@@ -362,7 +379,7 @@ bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update
 
 
 
-reset()
+#reset()
 
 # ---------------------- GUI -----------------------
 class hdri_map(bpy.types.Panel):
@@ -431,7 +448,8 @@ class OBJECT_OT_load_img(bpy.types.Operator):
         folder_path = os.path.dirname(img_path)
         update_pref()
         setup(img_path)
-        reset()
+        #reset()
+        apply_parameters()
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -446,6 +464,7 @@ class OBJECT_OT_Remove_setup(bpy.types.Operator):
     bl_label = "Delete"
  
     def execute(self, context):
+        reset()
         tree_name = "HDRI Lighting Shortcut"
         if node_tree_exists(tree_name):
             nw_world = bpy.data.worlds[world_num(tree_name)]
