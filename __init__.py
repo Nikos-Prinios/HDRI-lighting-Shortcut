@@ -212,7 +212,13 @@ def update_colcor(self,context):
         color_correc = True
     else:
         color_correc = False
-    
+        self.color_r = 0
+        self.color_g = 0
+        self.color_b = 0
+        self.sat = 1
+        self.hue = .5
+        self.reflexion = 1
+        self.mirror = False
 
 def node_tree_exists(world_name):
     for w in bpy.data.worlds:
