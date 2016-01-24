@@ -169,6 +169,11 @@ def update_strength(self, context):
             self.reflexion = self.light_strength
     except:
         pass
+def update_main_strength(self, context):
+    try:
+        node_math.inputs[1].default_value = self.main_light_strength
+    except:
+        pass
 
 def update_visible(self, context):
     cam = self.world.cycles_visibility
@@ -194,6 +199,7 @@ def reset():
         bpy.context.scene.mirror = False
         bpy.context.scene.world.cycles_visibility.camera = False
         bpy.context.scene.light_strength = 0.5
+        bpy.context.scene.main_light_strength = 0.1
         bpy.context.scene.orientation = 0.0
         self.color_r = 0
         self.color_g = 0
@@ -384,7 +390,8 @@ def setup(img_path):
 
 # ----------------- Custom Prop --------------------
 bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation",update=update_orientation, max = 360, min = 0, default = 0)
-bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Intensity",update=update_strength, default = 1)
+bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Ambient",update=update_strength, default = 0.5)
+bpy.types.Scene.main_light_strength = bpy.props.FloatProperty(name="Main",update=update_main_strength, default = 0.1)
 bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')  
 bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible",description="Switch on/off the visibility of the background",default = True)
 bpy.types.Scene.color_r = bpy.props.IntProperty(name="R",update=update_r, max = 255, min = 0, default = 0)
@@ -423,7 +430,11 @@ class hdri_map(bpy.types.Panel):
             row.label(os.path.basename(img), icon='FILE_IMAGE')
             row.prop(scene, "visible")
             row = box.row()
+            row.label("Light sources")
+            row = box.row()
             row.prop(scene, "light_strength")
+            row.prop(scene, "main_light_strength")
+            row = box.row()
             row.prop(scene, "orientation")
             row = box.row()
             row.prop(scene, "adjustments_prop")
@@ -468,7 +479,7 @@ class OBJECT_OT_load_img(bpy.types.Operator):
             folder_path = addon_prefs.folder_path
         except:
             pass
-        self.filepath = folder_path + '/'
+        self.filepath = folder_path 
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
