@@ -399,7 +399,7 @@ bpy.types.Scene.color_g = bpy.props.IntProperty(name="G",update=update_g, max = 
 bpy.types.Scene.color_b = bpy.props.IntProperty(name="B",update=update_b, max = 255, min = 0, default = 0)
 bpy.types.Scene.sat = bpy.props.FloatProperty(name="saturation",update=update_sat, max = 2, min = 0, default = 1)
 bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue",update=update_hue, max = 1, min = 0, default = .5)
-bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion Intensity",update=update_reflexion, default = 1)
+bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion",update=update_reflexion, default = 1)
 bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments",update=update_adjustments, default = False)
 bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update_mirror, default = False)
 
@@ -420,11 +420,13 @@ class hdri_map(bpy.types.Panel):
         layout = self.layout
         scene = bpy.context.scene
         
-        row = layout.row()      
-        row.operator("nodes.img", icon="WORLD")
         
+        
+
         if node_tree_ok():
-            self.layout.operator("remove.setup", icon="X")
+            row = layout.row(align=True)   
+            row.operator("nodes.img", icon="WORLD")
+            row.operator("remove.setup", icon="X")
             box = layout.box()
             row = box.row() 
             row.label(os.path.basename(img), icon='FILE_IMAGE')
@@ -449,6 +451,10 @@ class hdri_map(bpy.types.Panel):
                 row = box.row()
                 row.prop(scene,'reflexion')
                 row.prop(scene, "mirror")
+        else:
+            row = layout.row 
+            row.operator("nodes.img", icon="WORLD")
+                
 
 class OBJECT_OT_load_img(bpy.types.Operator):  
     bl_label = "Load Image"
@@ -486,7 +492,7 @@ class OBJECT_OT_load_img(bpy.types.Operator):
 
 class OBJECT_OT_Remove_setup(bpy.types.Operator):
     bl_idname = "remove.setup"
-    bl_label = "Delete"
+    bl_label = ""
  
     def execute(self, context):
         reset()
