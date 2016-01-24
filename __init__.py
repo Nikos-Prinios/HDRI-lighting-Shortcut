@@ -193,14 +193,14 @@ def reset():
         bpy.context.scene.adjustments_prop = False
         bpy.context.scene.mirror = False
         bpy.context.scene.world.cycles_visibility.camera = False
-        bpy.context.scene.light_strength = 1.0
+        bpy.context.scene.light_strength = 0.5
         bpy.context.scene.orientation = 0.0
         self.color_r = 0
         self.color_g = 0
         self.color_b = 0
         self.sat = 1
-        self.hue = .5
-        self.reflexion = 1
+        self.hue = 0.5
+        self.reflexion = 0.5
         self.mirror = False
     except:
         pass
@@ -318,23 +318,25 @@ def setup(img_path):
     node_math.name = "HLS_MATH"
     node_math.location = 400,-100
     node_math.operation = 'MULTIPLY'
+    node_math.inputs[1].default_value = 0.1
 
     node_math_add = nodes.new('ShaderNodeMath')  #####
     node_math_add.name = "HLS_MATH_ADD"
     node_math_add.location = 400,-300
     node_math_add.operation = 'ADD'
-    node_math_add.inputs[1].default_value = .1
+    node_math_add.inputs[1].default_value = 0.5
 
     node_rflx_math = nodes.new('ShaderNodeMath')
     node_rflx_math.name = "RFLX_MATH"
     node_rflx_math.location = 400,-500
     node_rflx_math.operation = 'MULTIPLY'
+    node_rflx_math.inputs[1].default_value = 0.1
 
     node_rflx_math_add = nodes.new('ShaderNodeMath')  ####
     node_rflx_math_add.name = "RFLX_MATH_ADD"
     node_rflx_math_add.location = 400,-700
     node_rflx_math_add.operation = 'ADD'
-    node_rflx_math_add.inputs[1].default_value = .1
+    node_rflx_math_add.inputs[1].default_value = 0.5
 
     node_bkgnd = nodes.new('ShaderNodeBackground')
     node_bkgnd.location = 600,0
