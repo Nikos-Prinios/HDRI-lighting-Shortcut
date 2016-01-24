@@ -126,26 +126,8 @@ def update_mirror(self, context):
         pass
 
 def update_orientation(self, context):
-    #try :
-    node_map.rotation[2] = (self.orientation * 0.0174533)
-    #except :
-    #    pass
-
-def update_r(self, context):
     try :
-        node_rgb.inputs[0].default_value = ((self.color_r * 100)/255)/100
-    except :
-        pass
-
-def update_g(self, context):
-    try :
-        node_rgb.inputs[1].default_value = ((self.color_g * 100)/255)/100
-    except :
-        pass
-
-def update_b(self, context):
-    try :
-        node_rgb.inputs[2].default_value = ((self.color_b * 100)/255)/100
+        node_map.rotation[2] = (self.orientation * 0.0174533)
     except :
         pass
 
@@ -193,29 +175,27 @@ def update_reflexion(self, context):
         pass
 
 def reset():
-    try:
-        bpy.context.scene.visible = False
-        bpy.context.scene.adjustments_prop = False
-        bpy.context.scene.mirror = False
-        bpy.context.scene.world.cycles_visibility.camera = False
-        bpy.context.scene.light_strength = 0.5
-        bpy.context.scene.main_light_strength = 0.1
-        bpy.context.scene.orientation = 0.0
-        self.color_r = 0
-        self.color_g = 0
-        self.color_b = 0
-        self.sat = 1
-        self.hue = 0.5
-        self.reflexion = 0.5
-        self.mirror = False
-    except:
-        pass
+    self = bpy.context.scene
+    self.visible = False
+    self.adjustments_prop = False
+    self.mirror = False
+    self.world.cycles_visibility.camera = False
+    self.light_strength = 0.5
+    self.main_light_strength = 0.1
+    self.orientation = 0.0
+    self.adjustments_color = (0,0,0)
+    self.sat = 1
+    self.hue = 0.5
+    self.reflexion = 0.5
+    self.mirror = False
+
 
 def apply_parameters():
     scene = bpy.context.scene
-    node_rgb.inputs[0].default_value = ((scene.color_r * 100)/255)/100
-    node_rgb.inputs[1].default_value = ((scene.color_g * 100)/255)/100
-    node_rgb.inputs[2].default_value = ((scene.color_b * 100)/255)/100
+    node_rgb.inputs[0].default_value = scene.adjustments_color[0]
+    node_rgb.inputs[1].default_value = scene.adjustments_color[1]
+    node_rgb.inputs[2].default_value = scene.adjustments_color[2]
+
     node_sat.inputs[1].default_value = scene.sat
     node_sat.inputs[0].default_value = scene.hue
     node_rflx_math_add.inputs[1].default_value = scene.reflexion
@@ -239,9 +219,7 @@ def update_adjustments(self,context):
         adjustments = True
     else:
         adjustments = False
-        self.color_r = 0
-        self.color_g = 0
-        self.color_b = 0
+        self.adjustments_color=(0,0,0)
         self.sat = 1
         self.hue = .5
         self.reflexion = self.light_strength
@@ -387,6 +365,13 @@ def setup(img_path):
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
     bpy.context.area.type = 'PROPERTIES'
 
+def update_color(self, context):
+    print(self.adjustments_color[0])
+    print(self.adjustments_color[1])
+    print(self.adjustments_color[2])
+    node_rgb.inputs[0].default_value = self.adjustments_color[0]
+    node_rgb.inputs[1].default_value = self.adjustments_color[1]
+    node_rgb.inputs[2].default_value = self.adjustments_color[2]
 
 # ----------------- Custom Prop --------------------
 bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation",update=update_orientation, max = 360, min = 0, default = 0)
@@ -394,14 +379,12 @@ bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Ambient",update=u
 bpy.types.Scene.main_light_strength = bpy.props.FloatProperty(name="Main",update=update_main_strength, default = 0.1)
 bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')  
 bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible",description="Switch on/off the visibility of the background",default = True)
-bpy.types.Scene.color_r = bpy.props.IntProperty(name="R",update=update_r, max = 255, min = 0, default = 0)
-bpy.types.Scene.color_g = bpy.props.IntProperty(name="G",update=update_g, max = 255, min = 0, default = 0)
-bpy.types.Scene.color_b = bpy.props.IntProperty(name="B",update=update_b, max = 255, min = 0, default = 0)
 bpy.types.Scene.sat = bpy.props.FloatProperty(name="saturation",update=update_sat, max = 2, min = 0, default = 1)
 bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue",update=update_hue, max = 1, min = 0, default = .5)
 bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion",update=update_reflexion, default = 1)
 bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments",update=update_adjustments, default = False)
 bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update_mirror, default = False)
+bpy.types.Scene.adjustments_color = bpy.props.FloatVectorProperty(name = "Correction", update=update_color, subtype="COLOR", min=0, max=1, default =(0,0,0))
 
 # ---------------------- GUI -----------------------
 class hdri_map(bpy.types.Panel):
@@ -421,10 +404,12 @@ class hdri_map(bpy.types.Panel):
         scene = bpy.context.scene
         
         
-        
-
+        if not node_tree_ok():
+            row = layout.row()   
+            row.operator("nodes.img", icon="WORLD")
         if node_tree_ok():
-            row = layout.row(align=True)   
+            row = layout.row(align=True)
+            row.active = True   
             row.operator("nodes.img", icon="WORLD")
             row.operator("remove.setup", icon="X")
             box = layout.box()
@@ -445,15 +430,11 @@ class hdri_map(bpy.types.Panel):
                 row.prop(scene, "sat")
                 row.prop(scene, "hue")
                 row = box.row()
-                row.prop(scene, "color_r")
-                row.prop(scene, "color_g")
-                row.prop(scene, "color_b")
+                row.prop(scene, 'adjustments_color')
                 row = box.row()
                 row.prop(scene,'reflexion')
                 row.prop(scene, "mirror")
-        else:
-            row = layout.row 
-            row.operator("nodes.img", icon="WORLD")
+
                 
 
 class OBJECT_OT_load_img(bpy.types.Operator):  
