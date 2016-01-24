@@ -23,7 +23,7 @@ import getpass
 import os
 
 global nodes,folder_path, pref, img_path, real_HDR, adjustments
-global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_rflx_math,node_rflx_math_add
+global node_coo,node_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_rflx_math,node_rflx_math_add
 
 real_HDR = False
 adjustments = False
@@ -253,7 +253,7 @@ def world_num(world_name):
             return index
 
 def setup(img_path):
-    global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_reflexion,node_rflx_math,node_rflx_math_add
+    global node_coo,node_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_reflexion,node_rflx_math,node_rflx_math_add
     bpy.context.area.type = 'NODE_EDITOR'
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.space_data.tree_type = 'ShaderNodeTree'
