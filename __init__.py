@@ -7,7 +7,7 @@
 bl_info = {
     "name": "HDRI lighting Shortcut",
     "author": "Nicolas Priniotakis (Nikos)",
-    "version": (1,2,0,1),
+    "version": (1,3,0,0),
     "blender": (2, 7, 6, 0),
     "api": 44539,
     "category": "Material",
@@ -23,7 +23,7 @@ import getpass
 import os
 
 global nodes,folder_path, pref, img_path, real_HDR, adjustments
-global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out,node_light_path
+global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_rflx_math,node_rflx_math_add
 
 real_HDR = False
 adjustments = False
@@ -57,31 +57,40 @@ def node_exists(n):
     return False
     
 def node_attrib():
-    global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out,node_light_path,node_reflexion
+    global node_coo,node_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_reflexion,node_rflx_math,node_rflx_math_add
     nodes = bpy.context.scene.world.node_tree.nodes
-    for node in nodes:
-        if node.name == 'COORDINATE':
-            node_coo = node
-        if node.name == 'MAPPING':
-            node_map = node
-        if node.name == 'COMBINE':
-            node_rgb = node
-        if node.name == 'RGB_ADD':
-            node_add = node
-        if node.name == 'SATURATION':
-            node_sat = node
-        if node.name == 'ENVIRONMENT':
-            node_env = node
-        if node.name == 'HLS_MATH':
-            node_math = node
-        if node.name == 'BACKGROUND':
-            node_bkgnd = node
-        if node.name == 'OUTPUT':
-            node_out = node
-        if node.name == "LIGHT_PATH":
-            node_light_path = node
-        if node.name == 'REFLEXION':
-            node_reflexion = node
+    try:
+        for node in nodes:
+            if node.name == 'COORDINATE':
+                node_coo = node
+            if node.name == 'MAPPING':
+                node_map = node
+            if node.name == 'COMBINE':
+                node_rgb = node
+            if node.name == 'RGB_ADD':
+                node_add = node
+            if node.name == 'SATURATION':
+                node_sat = node
+            if node.name == 'ENVIRONMENT':
+                node_env = node
+            if node.name == 'HLS_MATH':
+                node_math = node
+            if node.name == 'HLS_MATH_ADD':
+                node_math_add = node
+            if node.name == 'BACKGROUND':
+                node_bkgnd = node
+            if node.name == 'OUTPUT':
+                node_out = node
+            if node.name == "LIGHT_PATH":
+                node_light_path = node
+            if node.name == 'REFLEXION':
+                node_reflexion = node
+            if node.name == "RFLX_MATH":
+                node_rflx_math = node
+            if node.name == "RFLX_MATH_ADD":
+                node_rflx_math_add = node
+    except:
+        pass
 
 def node_tree_ok():
     current_world = bpy.context.scene.world
@@ -95,9 +104,14 @@ def node_tree_ok():
                                 if node_exists("BACKGROUND"):
                                     if node_exists("LIGHT_PATH"):
                                         if node_exists('REFLEXION'):
-                                            if node_exists("OUTPUT"):
-                                                node_attrib()
-                                                return True
+                                            if node_exists('RFLX_MATH'):
+                                                if node_exists('RFLX_MATH_ADD'):
+                                                    if node_exists('HLS_MATH'):
+                                                        if node_exists('HLS_MATH_ADD'):
+                                                            if node_exists('REF_MIX'):
+                                                                if node_exists("OUTPUT"):
+                                                                    node_attrib()
+                                                                    return True
     return False
 
 
@@ -112,10 +126,10 @@ def update_mirror(self, context):
         pass
 
 def update_orientation(self, context):
-    try :
-        node_map.rotation[2] = (self.orientation * 0.0174533)
-    except :
-        pass
+    #try :
+    node_map.rotation[2] = (self.orientation * 0.0174533)
+    #except :
+    #    pass
 
 def update_r(self, context):
     try :
@@ -148,15 +162,14 @@ def update_hue(self, context):
         pass
 
 def update_strength(self, context):
-    global real_HDR
-    try :
-        if not real_HDR:
-            node_math.inputs[1].default_value = self.light_strength
-        else:
-            node_bkgnd.inputs[1].default_value = self.light_strength
-    except :
+    try:
+        node_math_add.inputs[1].default_value = self.light_strength
+        if bpy.context.scene.adjustments_prop == False:
+            node_rflx_math_add.inputs[1].default_value = self.light_strength
+            self.reflexion = self.light_strength
+    except:
         pass
-    
+
 def update_visible(self, context):
     cam = self.world.cycles_visibility
     if self.visible == True:
@@ -170,7 +183,7 @@ def update_visible(self, context):
 
 def update_reflexion(self, context):
     try:
-        node_reflexion.inputs[1].default_value = self.reflexion
+        node_rflx_math_add.inputs[1].default_value = self.reflexion
     except :
         pass
 
@@ -193,18 +206,18 @@ def reset():
         pass
 
 def apply_parameters():
-    self = bpy.context.scene
-    context = bpy.context
-    update_reflexion(self,context)
-    update_visible(self,context)
-    update_strength(self,context)
-    update_r(self,context)
-    update_g(self,context)
-    update_b(self,context)
-    update_hue(self,context)
-    update_sat(self,context)
-    update_orientation(self,context)
-    update_mirror(self,context)
+    scene = bpy.context.scene
+    node_rgb.inputs[0].default_value = ((scene.color_r * 100)/255)/100
+    node_rgb.inputs[1].default_value = ((scene.color_g * 100)/255)/100
+    node_rgb.inputs[2].default_value = ((scene.color_b * 100)/255)/100
+    node_sat.inputs[1].default_value = scene.sat
+    node_sat.inputs[0].default_value = scene.hue
+    node_rflx_math_add.inputs[1].default_value = scene.reflexion
+
+    if scene.mirror == True:
+        node_env.projection = 'MIRROR_BALL'
+    else:
+        node_env.projection = 'EQUIRECTANGULAR'
 
 def clear_node_tree():
     nodes = bpy.context.scene.world.node_tree.nodes
@@ -225,7 +238,7 @@ def update_adjustments(self,context):
         self.color_b = 0
         self.sat = 1
         self.hue = .5
-        self.reflexion = 1
+        self.reflexion = self.light_strength
         self.mirror = False
 
 def node_tree_exists(world_name):
@@ -240,7 +253,7 @@ def world_num(world_name):
             return index
 
 def setup(img_path):
-    global nodes,node_math, node_bkgnd, node_map,real_HDR, node_rgb, node_sat,node_reflexion,node_light_path
+    global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_reflexion,node_rflx_math,node_rflx_math_add
     bpy.context.area.type = 'NODE_EDITOR'
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.space_data.tree_type = 'ShaderNodeTree'
@@ -304,7 +317,24 @@ def setup(img_path):
     node_math = nodes.new('ShaderNodeMath')
     node_math.name = "HLS_MATH"
     node_math.location = 400,-100
-    node_math.operation = 'ADD'
+    node_math.operation = 'MULTIPLY'
+
+    node_math_add = nodes.new('ShaderNodeMath')  #####
+    node_math_add.name = "HLS_MATH_ADD"
+    node_math_add.location = 400,-300
+    node_math_add.operation = 'ADD'
+    node_math_add.inputs[1].default_value = .1
+
+    node_rflx_math = nodes.new('ShaderNodeMath')
+    node_rflx_math.name = "RFLX_MATH"
+    node_rflx_math.location = 400,-500
+    node_rflx_math.operation = 'MULTIPLY'
+
+    node_rflx_math_add = nodes.new('ShaderNodeMath')  ####
+    node_rflx_math_add.name = "RFLX_MATH_ADD"
+    node_rflx_math_add.location = 400,-700
+    node_rflx_math_add.operation = 'ADD'
+    node_rflx_math_add.inputs[1].default_value = .1
 
     node_bkgnd = nodes.new('ShaderNodeBackground')
     node_bkgnd.location = 600,0
@@ -320,7 +350,7 @@ def setup(img_path):
 
     node_ref_mix = nodes.new('ShaderNodeMixShader')
     node_ref_mix.location = 800,0
-    node_ref_mix.name = 'ref_mix'
+    node_ref_mix.name = 'REF_MIX'
 
     node_out = nodes.new('ShaderNodeOutputWorld')
     node_out.location = 1000,0
@@ -334,13 +364,16 @@ def setup(img_path):
     link4 = links.new(node_sat.outputs[0],node_add.inputs[2])
     link5 = links.new(node_add.outputs[0],node_reflexion.inputs[0])
     link6 = links.new(node_add.outputs[0],node_bkgnd.inputs[0])
-    link7 = links.new(node_light_path.outputs[3],node_ref_mix.inputs[0])
-    if not real_HDR:
-        link8 = links.new(node_env.outputs[0],node_math.inputs[0])
-        link9 = links.new(node_math.outputs[0],node_bkgnd.inputs[1])
-    link10 = links.new(node_bkgnd.outputs[0],node_ref_mix.inputs[1])
-    link11 = links.new(node_reflexion.outputs[0],node_ref_mix.inputs[2])
-    link12 = links.new(node_ref_mix.outputs[0],node_out.inputs[0])
+    link7 = links.new(node_light_path.outputs[5],node_ref_mix.inputs[0])
+    link8 = links.new(node_env.outputs[0],node_rflx_math.inputs[0])
+    link9 = links.new(node_rflx_math.outputs[0],node_rflx_math_add.inputs[0])
+    link10 = links.new(node_rflx_math_add.outputs[0],node_reflexion.inputs[1])
+    link11 = links.new(node_env.outputs[0],node_math.inputs[0])
+    link12 = links.new(node_math.outputs[0],node_math_add.inputs[0])
+    link13 = links.new(node_math_add.outputs[0],node_bkgnd.inputs[1])
+    link14 = links.new(node_bkgnd.outputs[0],node_ref_mix.inputs[1])
+    link15 = links.new(node_reflexion.outputs[0],node_ref_mix.inputs[2])
+    link16 = links.new(node_ref_mix.outputs[0],node_out.inputs[0])
 
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
