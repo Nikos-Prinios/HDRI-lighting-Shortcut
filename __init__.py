@@ -272,6 +272,8 @@ def setup(img_path):
     except:
         raise NameError("Cannot load image %s" % path)
 
+    for n in nodes:
+        nodes.remove(n)
     node_coo = nodes.new('ShaderNodeTexCoord')
     node_coo.location = -400,0
     node_coo.name = 'COORDINATE'
@@ -324,7 +326,6 @@ def setup(img_path):
     node_out.location = 1000,0
     node_out.name = 'OUTPUT'
 
-    #create links
     links = tree.links
     link0 = links.new(node_coo.outputs[0],node_map.inputs[0])
     link1 = links.new(node_map.outputs[0],node_env.inputs[0])
@@ -458,7 +459,7 @@ class HDRI_Preferences(AddonPreferences):
     bl_idname = __name__
 
     folder_path = bpy.props.StringProperty(
-            name="Folder Path",
+            name="HDRI Folder",
             subtype='DIR_PATH',
             )
 
