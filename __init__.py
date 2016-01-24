@@ -7,7 +7,7 @@
 bl_info = {
     "name": "HDRI lighting Shortcut",
     "author": "Nicolas Priniotakis (Nikos)",
-    "version": (1,2,0,0),
+    "version": (1,2,0,1),
     "blender": (2, 7, 6, 0),
     "api": 44539,
     "category": "Material",
@@ -17,18 +17,16 @@ bl_info = {
     "wiki_url": "",
     "tracker_url": "",}
 
-import bpy, pickle, getpass, os
+import bpy
+from bpy.types import Operator, AddonPreferences
+import getpass
+import os
 
-global nodes,folder_path, pref, img_path, real_HDR, color_correc
+global nodes,folder_path, pref, img_path, real_HDR, adjustments
 global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out,node_light_path
+
 real_HDR = False
-pref = os.path.expanduser('~/%s' % 'hdri_prefs')
-if not os.path.exists(pref):
-    folder_path = '//'
-else:
-    folder_path = pickle.load( open( pref, "rb" ) )
-print("HDRI folder : " + folder_path)
-color_correc = False
+adjustments = False
 img_path = None
     
 # ----------------- functions --------------------
@@ -48,72 +46,60 @@ def img_index(img):
 def current_bkgnd():
     nodes = bpy.context.scene.world.node_tree.nodes
     for node in nodes:
-        if node.name == "HLS_ENV":
+        if node.name == "ENVIRONMENT":
             return node.image.name
-    
-    
+   
 def node_exists(n):
     nodes = bpy.context.scene.world.node_tree.nodes
     for node in nodes:
         if node.name == n:
             return True
     return False
-
     
 def node_attrib():
     global node_coo,nod_map,node_rgb,node_add,node_sat,node_env,node_math,node_bkgnd,node_out,node_light_path,node_reflexion
     nodes = bpy.context.scene.world.node_tree.nodes
     for node in nodes:
-        if node.name == 'coordinate':
+        if node.name == 'COORDINATE':
             node_coo = node
-        if node.name == 'HLS_MAPPING':
+        if node.name == 'MAPPING':
             node_map = node
-        if node.name == 'Color_correction':
+        if node.name == 'COMBINE':
             node_rgb = node
         if node.name == 'RGB_ADD':
             node_add = node
-        if node.name == 'saturation':
+        if node.name == 'SATURATION':
             node_sat = node
-        if node.name == 'HLS_ENV':
+        if node.name == 'ENVIRONMENT':
             node_env = node
         if node.name == 'HLS_MATH':
             node_math = node
-        if node.name == 'bkgnd':
+        if node.name == 'BACKGROUND':
             node_bkgnd = node
-        if node.name == 'output':
+        if node.name == 'OUTPUT':
             node_out = node
-        if node.name == 'light_path':
+        if node.name == "LIGHT_PATH":
             node_light_path = node
-        if node.name == 'reflexion':
+        if node.name == 'REFLEXION':
             node_reflexion = node
 
 def node_tree_ok():
-    #bpy.context.area.type = 'NODE_EDITOR'
-    #bpy.context.space_data.tree_type = 'ShaderNodeTree'
-    #bpy.context.space_data.shader_type = 'WORLD'
-
     current_world = bpy.context.scene.world
     if current_world.name == "HDRI Lighting Shortcut":
-        if node_exists("coordinate"):
-            if node_exists("HLS_MAPPING"):
-                if node_exists("Color_correction"):
+        if node_exists("COORDINATE"):
+            if node_exists("MAPPING"):
+                if node_exists("COMBINE"):
                     if node_exists("RGB_ADD"):
-                        if node_exists("saturation"):
-                            if node_exists("HLS_ENV"):
-                                if node_exists("bkgnd"):
-                                    if node_exists("light_path"):
-                                        if node_exists('reflexion'):
-                                            if node_exists("output"):
+                        if node_exists("SATURATION"):
+                            if node_exists("ENVIRONMENT"):
+                                if node_exists("BACKGROUND"):
+                                    if node_exists("LIGHT_PATH"):
+                                        if node_exists('REFLEXION'):
+                                            if node_exists("OUTPUT"):
                                                 node_attrib()
                                                 return True
     return False
 
-def update_pref(): 
-    global folder_path
-    try:
-        pickle.dump((folder_path), open( 'hdri_prefs', "wb" ) )
-    except:
-        folder_path = '//'
 
 def update_mirror(self, context):
     global node_env
@@ -127,25 +113,13 @@ def update_mirror(self, context):
 
 def update_orientation(self, context):
     try :
-        node_map.rotation[2] = (self.z_orientation * 0.0174533)
+        node_map.rotation[2] = (self.orientation * 0.0174533)
     except :
         pass
 
 def update_r(self, context):
     try :
         node_rgb.inputs[0].default_value = ((self.color_r * 100)/255)/100
-    except :
-        pass
-
-def update_sat(self, context):
-    try :
-        node_sat.inputs[1].default_value = self.sat
-    except :
-        pass
-
-def update_hue(self, context):
-    try :
-        node_sat.inputs[0].default_value = self.hue
     except :
         pass
 
@@ -161,6 +135,18 @@ def update_b(self, context):
     except :
         pass
 
+def update_sat(self, context):
+    try :
+        node_sat.inputs[1].default_value = self.sat
+    except :
+        pass
+
+def update_hue(self, context):
+    try :
+        node_sat.inputs[0].default_value = self.hue
+    except :
+        pass
+
 def update_strength(self, context):
     global real_HDR
     try :
@@ -172,24 +158,30 @@ def update_strength(self, context):
         pass
     
 def update_visible(self, context):
-    cam = bpy.context.scene.world.cycles_visibility
-    cam.camera = not cam.camera
+    cam = self.world.cycles_visibility
+    if self.visible == True:
+        cam.camera = True
+    else:
+        cam.camera = False
     try :
         self.light_strength += 0 #dirty trick to force the viewport to update
     except :
         pass
 
 def update_reflexion(self, context):
-    node_reflexion.inputs[1].default_value = self.reflexion
+    try:
+        node_reflexion.inputs[1].default_value = self.reflexion
+    except :
+        pass
 
 def reset():
     try:
         bpy.context.scene.visible = False
-        bpy.context.scene.colcor = False
+        bpy.context.scene.adjustments_prop = False
         bpy.context.scene.mirror = False
         bpy.context.scene.world.cycles_visibility.camera = False
         bpy.context.scene.light_strength = 1.0
-        bpy.context.scene.z_orientation = 0.0
+        bpy.context.scene.orientation = 0.0
         self.color_r = 0
         self.color_g = 0
         self.color_b = 0
@@ -214,21 +206,20 @@ def apply_parameters():
     update_orientation(self,context)
     update_mirror(self,context)
 
-
 def clear_node_tree():
-    try:
-        nodes = bpy.context.scene.world.node_tree.nodes
-        for node in nodes:
+    nodes = bpy.context.scene.world.node_tree.nodes
+    for node in nodes:
+        try:
             nodes.remove(node)
-    except:
-        pass
+        except:
+            pass
 
-def update_colcor(self,context):
-    global color_correc
-    if self.colcor == True:
-        color_correc = True
+def update_adjustments(self,context):
+    global adjustments
+    if self.adjustments_prop == True:
+        adjustments = True
     else:
-        color_correc = False
+        adjustments = False
         self.color_r = 0
         self.color_g = 0
         self.color_b = 0
@@ -250,14 +241,13 @@ def world_num(world_name):
 
 def setup(img_path):
     global nodes,node_math, node_bkgnd, node_map,real_HDR, node_rgb, node_sat,node_reflexion,node_light_path
-    
     bpy.context.area.type = 'NODE_EDITOR'
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.space_data.tree_type = 'ShaderNodeTree'
     bpy.context.space_data.shader_type = 'WORLD'
     tree_name = "HDRI Lighting Shortcut"
-    
-    # Create the new world if it doesn't exists
+
+
     if node_tree_exists(tree_name):
         bpy.context.scene.world.use_nodes = True
         nw_world = bpy.data.worlds[world_num(tree_name)]
@@ -274,7 +264,6 @@ def setup(img_path):
     real_HDR = False
     if img.endswith(".hdr") or img.endswith(".exr"):
         real_HDR = True
-    
     try:
         if not img_exists(img):
             img = bpy.data.images.load(img_path)
@@ -283,19 +272,16 @@ def setup(img_path):
     except:
         raise NameError("Cannot load image %s" % path)
 
-    for n in nodes:
-        nodes.remove(n)
-
     node_coo = nodes.new('ShaderNodeTexCoord')
     node_coo.location = -400,0
-    node_coo.name = 'coordinate'
+    node_coo.name = 'COORDINATE'
 
     node_map = nodes.new('ShaderNodeMapping')
-    node_map.name = "HLS_MAPPING"
+    node_map.name = "MAPPING"
     node_map.location = -200,0
 
     node_rgb = nodes.new("ShaderNodeCombineRGB")
-    node_rgb.name = 'Color_correction'
+    node_rgb.name = 'COMBINE'
     node_rgb.location = 200,200
 
     node_add = nodes.new("ShaderNodeMixRGB")
@@ -306,14 +292,13 @@ def setup(img_path):
 
     node_sat = nodes.new("ShaderNodeHueSaturation")
     node_sat.location = 400,200
-    node_sat.name = 'saturation'
+    node_sat.name = 'SATURATION'
 
     node_env = nodes.new('ShaderNodeTexEnvironment')
-    node_env.name = "HLS_ENV"
+    node_env.name = "ENVIRONMENT"
     node_env.image = img
     node_env.location = 200,0
 
-    #if not real_HDR:
     node_math = nodes.new('ShaderNodeMath')
     node_math.name = "HLS_MATH"
     node_math.location = 400,-100
@@ -321,15 +306,15 @@ def setup(img_path):
 
     node_bkgnd = nodes.new('ShaderNodeBackground')
     node_bkgnd.location = 600,0
-    node_bkgnd.name = 'bkgnd'
+    node_bkgnd.name = 'BACKGROUND'
 
     node_reflexion = nodes.new('ShaderNodeBackground')
     node_reflexion.location = 600,-200
-    node_reflexion.name = 'reflexion'
+    node_reflexion.name = 'REFLEXION'
 
     node_light_path = nodes.new('ShaderNodeLightPath')
     node_light_path.location = 600,400
-    node_light_path.name = 'light_path'
+    node_light_path.name = "LIGHT_PATH"
 
     node_ref_mix = nodes.new('ShaderNodeMixShader')
     node_ref_mix.location = 800,0
@@ -337,7 +322,7 @@ def setup(img_path):
 
     node_out = nodes.new('ShaderNodeOutputWorld')
     node_out.location = 1000,0
-    node_out.name = 'output'
+    node_out.name = 'OUTPUT'
 
     #create links
     links = tree.links
@@ -358,28 +343,22 @@ def setup(img_path):
 
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
-    #end
     bpy.context.area.type = 'PROPERTIES'
 
-    # ---------------------------------------
 
 # ----------------- Custom Prop --------------------
-bpy.types.Scene.z_orientation = bpy.props.FloatProperty(name="Orientation",update=update_orientation, max = 360, min = 0, default = 0)
-bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Strength",update=update_strength, default = 1)
+bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation",update=update_orientation, max = 360, min = 0, default = 0)
+bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Intensity",update=update_strength, default = 1)
 bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')  
-bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible",description="Let the background being visible by the camera",default = True)
+bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible",description="Switch on/off the visibility of the background",default = True)
 bpy.types.Scene.color_r = bpy.props.IntProperty(name="R",update=update_r, max = 255, min = 0, default = 0)
 bpy.types.Scene.color_g = bpy.props.IntProperty(name="G",update=update_g, max = 255, min = 0, default = 0)
 bpy.types.Scene.color_b = bpy.props.IntProperty(name="B",update=update_b, max = 255, min = 0, default = 0)
-bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation",update=update_sat, max = 2, min = 0, default = 1)
+bpy.types.Scene.sat = bpy.props.FloatProperty(name="saturation",update=update_sat, max = 2, min = 0, default = 1)
 bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue",update=update_hue, max = 1, min = 0, default = .5)
 bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion Intensity",update=update_reflexion, default = 1)
-bpy.types.Scene.colcor = bpy.props.BoolProperty(name="Adjustments",update=update_colcor, default = False)
+bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments",update=update_adjustments, default = False)
 bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update_mirror, default = False)
-
-
-
-#reset()
 
 # ---------------------- GUI -----------------------
 class hdri_map(bpy.types.Panel):
@@ -390,7 +369,7 @@ class hdri_map(bpy.types.Panel):
     bl_context = "world"
     
     def draw(self, context):
-        global color_correc
+        global adjustments
         try:
             img = current_bkgnd()
         except:
@@ -399,24 +378,20 @@ class hdri_map(bpy.types.Panel):
         scene = bpy.context.scene
         
         row = layout.row()      
-        row.operator("nodes.img", icon="TRIA_RIGHT")
+        row.operator("nodes.img", icon="WORLD")
         
-        #if img_path is not None:
         if node_tree_ok():
-            
-            self.layout.operator("remove.setup")
-
+            self.layout.operator("remove.setup", icon="X")
             box = layout.box()
             row = box.row() 
             row.label(os.path.basename(img), icon='FILE_IMAGE')
             row.prop(scene, "visible")
             row = box.row()
             row.prop(scene, "light_strength")
-            #row = layout.row()
-            row.prop(scene, "z_orientation")
+            row.prop(scene, "orientation")
             row = box.row()
-            row.prop(scene, "colcor")
-            if color_correc == True:
+            row.prop(scene, "adjustments_prop")
+            if adjustments == True:
                 row = box.row()
                 row.prop(scene, "sat")
                 row.prop(scene, "hue")
@@ -428,13 +403,12 @@ class hdri_map(bpy.types.Panel):
                 row.prop(scene,'reflexion')
                 row.prop(scene, "mirror")
 
-
 class OBJECT_OT_load_img(bpy.types.Operator):  
     bl_label = "Load Image"
     bl_idname = "nodes.img"
     bl_description = "Load Image"
     bl_options = {'REGISTER'}
-
+    
     filter_glob = bpy.props.StringProperty(default="*.tif;*.png;*.jpeg;*.jpg;*.exr;*.hdr", options={'HIDDEN'}) 
     filepath = bpy.props.StringProperty(name="File Path", description="Filepath used for importing files", maxlen= 1024, default= "")
     files = bpy.props.CollectionProperty(
@@ -443,18 +417,22 @@ class OBJECT_OT_load_img(bpy.types.Operator):
         )    
         
     def execute(self,context):
-        global img_path, folder_path
+        global img_path
         img_path = self.properties.filepath
-        folder_path = os.path.dirname(img_path)
-        update_pref()
         setup(img_path)
-        #reset()
         apply_parameters()
         return {'FINISHED'}
 
     def invoke(self, context, event):
         global folder_path
-        self.filepath = folder_path+'/'
+        folder_path = '//'
+        try:
+            user_preferences = bpy.context.user_preferences
+            addon_prefs = user_preferences.addons['HDRI-lighting-Shortcut'].preferences
+            folder_path = addon_prefs.folder_path
+        except:
+            pass
+        self.filepath = folder_path + '/'
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -473,18 +451,47 @@ class OBJECT_OT_Remove_setup(bpy.types.Operator):
             # stupid trick to force cycles to update the viewport
             bpy.context.scene.world.light_settings.use_ambient_occlusion = not bpy.context.scene.world.light_settings.use_ambient_occlusion
             bpy.context.scene.world.light_settings.use_ambient_occlusion = not bpy.context.scene.world.light_settings.use_ambient_occlusion
-        return{'RUNNING_MODAL'}    
+        return{'RUNNING_MODAL'}
 
+
+class HDRI_Preferences(AddonPreferences):
+    bl_idname = __name__
+
+    folder_path = bpy.props.StringProperty(
+            name="Folder Path",
+            subtype='DIR_PATH',
+            )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "folder_path")
+
+
+class OBJECT_OT_addon_prefs(Operator):
+    """Display preferences"""
+    bl_idname = "object.addon_prefs"
+    bl_label = "Addon Preferences"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        user_preferences = context.user_preferences
+        addon_prefs = user_preferences.addons[__name__].preferences
+
+        info = ("Path: %s" %
+                (addon_prefs.folder_path))
+
+        self.report({'INFO'}, info)
+        
+
+        return {'FINISHED'}
+
+    
 # ----------------- Registration -------------------     
 def register():
-    bpy.utils.register_class(hdri_map)
     bpy.utils.register_module(__name__)
 
- 
 def unregister():
-    bpy.utils.unregister_class(hdri_map)
-    bpy.utils.unregister_class(OBJECT_OT_load_img)
-    bpy.utils.unregister_class(OBJECT_OT_Remove_setup)
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
