@@ -379,7 +379,7 @@ bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Ambient",update=u
 bpy.types.Scene.main_light_strength = bpy.props.FloatProperty(name="Main",update=update_main_strength, default = 0.1)
 bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')  
 bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible",description="Switch on/off the visibility of the background",default = True)
-bpy.types.Scene.sat = bpy.props.FloatProperty(name="saturation",update=update_sat, max = 2, min = 0, default = 1)
+bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation",update=update_sat, max = 2, min = 0, default = 1)
 bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue",update=update_hue, max = 1, min = 0, default = .5)
 bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion",update=update_reflexion, default = 1)
 bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments",update=update_adjustments, default = False)
