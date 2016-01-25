@@ -130,7 +130,8 @@ def update_mirror(self, context):
 
 def update_orientation(self, context):
     try :
-        node_map.rotation[2] = (self.orientation * 0.0174533)
+        node_map.rotation[2] = self.orientation
+        #node_map.rotation[2] = (self.orientation * 0.0174533)
     except :
         pass
 
@@ -378,7 +379,7 @@ def update_color(self, context):
     node_rgb.inputs[2].default_value = self.adjustments_color[2]
 
 # ----------------- Custom Prop --------------------
-bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation",update=update_orientation, max = 360, min = 0, default = 0)
+bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation",update=update_orientation, max = 360, min = 0, default = 0, unit='ROTATION')
 bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Ambient",update=update_strength, default = 0.5)
 bpy.types.Scene.main_light_strength = bpy.props.FloatProperty(name="Main",update=update_main_strength, default = 0.1)
 bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')  
