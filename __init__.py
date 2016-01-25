@@ -93,25 +93,28 @@ def node_attrib():
         pass
 
 def node_tree_ok():
-    current_world = bpy.context.scene.world
-    if current_world.name == "HDRI Lighting Shortcut":
-        if node_exists("COORDINATE"):
-            if node_exists("MAPPING"):
-                if node_exists("COMBINE"):
-                    if node_exists("RGB_ADD"):
-                        if node_exists("SATURATION"):
-                            if node_exists("ENVIRONMENT"):
-                                if node_exists("BACKGROUND"):
-                                    if node_exists("LIGHT_PATH"):
-                                        if node_exists('REFLEXION'):
-                                            if node_exists('RFLX_MATH'):
-                                                if node_exists('RFLX_MATH_ADD'):
-                                                    if node_exists('HLS_MATH'):
-                                                        if node_exists('HLS_MATH_ADD'):
-                                                            if node_exists('REF_MIX'):
-                                                                if node_exists("OUTPUT"):
-                                                                    node_attrib()
-                                                                    return True
+    try:
+        current_world = bpy.context.scene.world
+        if current_world.name == "HDRI Lighting Shortcut":
+            if node_exists("COORDINATE"):
+                if node_exists("MAPPING"):
+                    if node_exists("COMBINE"):
+                        if node_exists("RGB_ADD"):
+                            if node_exists("SATURATION"):
+                                if node_exists("ENVIRONMENT"):
+                                    if node_exists("BACKGROUND"):
+                                        if node_exists("LIGHT_PATH"):
+                                            if node_exists('REFLEXION'):
+                                                if node_exists('RFLX_MATH'):
+                                                    if node_exists('RFLX_MATH_ADD'):
+                                                        if node_exists('HLS_MATH'):
+                                                            if node_exists('HLS_MATH_ADD'):
+                                                                if node_exists('REF_MIX'):
+                                                                    if node_exists("OUTPUT"):
+                                                                        node_attrib()
+                                                                        return True
+    except:
+        pass
     return False
 
 
@@ -195,7 +198,8 @@ def apply_parameters():
     node_rgb.inputs[0].default_value = scene.adjustments_color[0]
     node_rgb.inputs[1].default_value = scene.adjustments_color[1]
     node_rgb.inputs[2].default_value = scene.adjustments_color[2]
-
+    node_math.inputs[1].default_value = scene.light_strength
+    node_math_add.inputs[1].default_value = scene.main_light_strength
     node_sat.inputs[1].default_value = scene.sat
     node_sat.inputs[0].default_value = scene.hue
     node_rflx_math_add.inputs[1].default_value = scene.reflexion
