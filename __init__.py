@@ -58,6 +58,7 @@ def node_exists(n):
     
 def node_attrib():
     global node_coo,node_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_reflexion,node_rflx_math,node_rflx_math_add
+    global node_blur_noise, node_blur_coordinate, node_blur_mix_1, node_blur_mix_2, node_blur_math_sub, node_blur_math_add
     nodes = bpy.context.scene.world.node_tree.nodes
     try:
         for node in nodes:
@@ -89,6 +90,18 @@ def node_attrib():
                 node_rflx_math = node
             if node.name == "RFLX_MATH_ADD":
                 node_rflx_math_add = node
+            if node.name == "BLUR_NOISE":
+                node_blur_noise = node
+            if node.name == "BLUR_COORDINATE":
+                node_blur_coordinate = node
+            if node.name == "BLUR_MIX_1":
+                node_blur_mix_1 = node
+            if node.name == "BLUR_MIX_2":
+                node_blur_mix_2 = node
+            if node.name == "BLUR_MATH_ADD":
+                node_blur_math_add = node
+            if node.name == "BLUR_MATH_SUB":
+                node_blur_math_sub = node
     except:
         pass
 
@@ -110,9 +123,15 @@ def node_tree_ok():
                                                         if node_exists('HLS_MATH'):
                                                             if node_exists('HLS_MATH_ADD'):
                                                                 if node_exists('REF_MIX'):
-                                                                    if node_exists("OUTPUT"):
-                                                                        node_attrib()
-                                                                        return True
+                                                                     if node_exists('BLUR_NOISE'):
+                                                                         if node_exists('BLUR_COORDINATE'):
+                                                                             if node_exists('BLUR_MIX_1'):
+                                                                                 if node_exists('BLUR_MIX_2'):
+                                                                                     if node_exists('BLUR_MATH_ADD'):
+                                                                                         if node_exists('BLUR_MATH_SUB'):
+                                                                                            if node_exists("OUTPUT"):
+                                                                                                node_attrib()
+                                                                                                return True
     except:
         pass
     return False
@@ -243,6 +262,7 @@ def world_num(world_name):
 
 def setup(img_path):
     global node_coo,node_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_reflexion,node_rflx_math,node_rflx_math_add
+    global node_blur_noise, node_blur_coordinate, node_blur_mix_1, node_blur_mix_2, node_blur_math_sub, node_blur_math_add
     bpy.context.area.type = 'NODE_EDITOR'
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.space_data.tree_type = 'ShaderNodeTree'
@@ -343,11 +363,45 @@ def setup(img_path):
     node_ref_mix.location = 800,0
     node_ref_mix.name = 'REF_MIX'
 
+    # blur group
+
+    node_blur_coordinate = nodes.new('ShaderNodeTexCoord')
+    node_blur_coordinate.location = -200,800
+    node_blur_coordinate.name = "BLUR_COORDINATE"
+
+    node_blur_noise = nodes.new('ShaderNodeTexNoise')
+    node_blur_noise.location = 0,800
+    node_blur_noise.name = "BLUR_NOISE"
+    node_blur_noise.inputs[1].default_value = 10000
+
+    node_blur_mix_1 = nodes.new('ShaderNodeMixRGB')
+    node_blur_mix_1.location = 200,800
+    node_blur_mix_1.name = "BLUR_MIX_1"
+    node_blur_mix_1.inputs[1].default_value = (0, 0, 0, 1)
+    node_blur_mix_1.inputs[0].default_value = 0.0
+
+
+    node_blur_mix_2 = nodes.new('ShaderNodeMixRGB')
+    node_blur_mix_2.location = 200,1000
+    node_blur_mix_2.name = "BLUR_MIX_2"
+    node_blur_mix_2.inputs[1].default_value = (0, 0, 0, 1)
+    node_blur_mix_2.inputs[0].default_value = 0.0
+
+    node_blur_math_add = nodes.new('ShaderNodeVectorMath')
+    node_blur_math_add.location = 400,800
+    node_blur_math_add.name = "BLUR_MATH_ADD"
+
+    node_blur_math_sub = nodes.new('ShaderNodeVectorMath')
+    node_blur_math_sub.location = 600,800
+    node_blur_math_sub.name = "BLUR_MATH_SUB"
+    node_blur_math_sub.operation = 'SUBTRACT'
+
     node_out = nodes.new('ShaderNodeOutputWorld')
     node_out.location = 1000,0
     node_out.name = 'OUTPUT'
 
     links = tree.links
+
     link0 = links.new(node_coo.outputs[0],node_map.inputs[0])
     link1 = links.new(node_map.outputs[0],node_env.inputs[0])
     link2 = links.new(node_rgb.outputs[0],node_add.inputs[1])
@@ -365,18 +419,27 @@ def setup(img_path):
     link14 = links.new(node_bkgnd.outputs[0],node_ref_mix.inputs[1])
     link15 = links.new(node_reflexion.outputs[0],node_ref_mix.inputs[2])
     link16 = links.new(node_ref_mix.outputs[0],node_out.inputs[0])
+    # blur group links
+    link17 = links.new(node_blur_noise.outputs[0],node_blur_mix_1.inputs[2])
+    link18 = links.new(node_blur_mix_1.outputs[0],node_blur_math_add.inputs[1])
+    link19 = links.new(node_blur_math_add.outputs[0],node_blur_math_sub.inputs[0])
+    link20 = links.new(node_blur_mix_2.outputs[0],node_blur_math_sub.inputs[1])
+    # blur link with others
+    link21 = links.new(node_blur_coordinate.outputs[0],node_blur_math_add.inputs[0])
+    link22 = links.new(node_blur_math_sub.outputs[0],node_env.inputs[0])
 
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
     bpy.context.area.type = 'PROPERTIES'
 
 def update_color(self, context):
-    print(self.adjustments_color[0])
-    print(self.adjustments_color[1])
-    print(self.adjustments_color[2])
     node_rgb.inputs[0].default_value = self.adjustments_color[0]
     node_rgb.inputs[1].default_value = self.adjustments_color[1]
     node_rgb.inputs[2].default_value = self.adjustments_color[2]
+
+def update_blur(self,context):
+    node_blur_mix_1.inputs[0].default_value = self.blur
+    node_blur_mix_2.inputs[0].default_value = self.blur
 
 # ----------------- Custom Prop --------------------
 bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation",update=update_orientation, max = 360, min = 0, default = 0, unit='ROTATION')
@@ -390,7 +453,7 @@ bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion",update=upda
 bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments",update=update_adjustments, default = False)
 bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update_mirror, default = False)
 bpy.types.Scene.adjustments_color = bpy.props.FloatVectorProperty(name = "Correction", update=update_color, subtype="COLOR", min=0, max=1, default =(0,0,0))
-
+bpy.types.Scene.blur = bpy.props.FloatProperty(name = "Blur", update=update_blur, min=0, max=0.5, default = 0.0)
 # ---------------------- GUI -----------------------
 class hdri_map(bpy.types.Panel):
     bl_idname = "OBJECT_PT_sample"
@@ -417,10 +480,14 @@ class hdri_map(bpy.types.Panel):
             row.active = True   
             row.operator("nodes.img", icon="WORLD")
             row.operator("remove.setup", icon="X")
+            row = layout.row()
+            
             box = layout.box()
-            row = box.row() 
+            row = box.row()
             row.label(os.path.basename(img), icon='FILE_IMAGE')
+            row = box.row()
             row.prop(scene, "visible")
+            row.prop(scene, "mirror")
             row = box.row()
             row.label("Light sources")
             row = box.row()
@@ -438,8 +505,7 @@ class hdri_map(bpy.types.Panel):
                 row.prop(scene, 'adjustments_color')
                 row = box.row()
                 row.prop(scene,'reflexion')
-                row.prop(scene, "mirror")
-
+                row.prop(scene,'blur')
                 
 
 class OBJECT_OT_load_img(bpy.types.Operator):  
