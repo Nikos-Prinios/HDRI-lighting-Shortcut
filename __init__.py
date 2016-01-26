@@ -480,15 +480,20 @@ class hdri_map(bpy.types.Panel):
             row.active = True   
             row.operator("nodes.img", icon="WORLD")
             row.operator("remove.setup", icon="X")
+            if scene.visible == True:
+                row.operator("visible.img", icon="RESTRICT_VIEW_OFF")
+            else:
+                row.operator("visible.img", icon="RESTRICT_VIEW_ON")
             row = layout.row()
             
+            
+           
             box = layout.box()
             row = box.row()
             row.label(os.path.basename(img), icon='FILE_IMAGE')
-            row = box.row()
-            row.prop(scene, "visible")
             row.prop(scene, "mirror")
             row = box.row()
+          
             row.label("Light sources")
             row = box.row()
             row.prop(scene, "light_strength")
@@ -556,6 +561,25 @@ class OBJECT_OT_Remove_setup(bpy.types.Operator):
             # stupid trick to force cycles to update the viewport
             bpy.context.scene.world.light_settings.use_ambient_occlusion = not bpy.context.scene.world.light_settings.use_ambient_occlusion
             bpy.context.scene.world.light_settings.use_ambient_occlusion = not bpy.context.scene.world.light_settings.use_ambient_occlusion
+        return{'RUNNING_MODAL'}
+
+class OBJECT_OT_Visible(bpy.types.Operator):
+    bl_idname = "visible.img"
+    bl_label = ""
+ 
+    def execute(self, context):
+        scene = bpy.context.scene
+        cam = scene.world.cycles_visibility
+        if scene.visible == True:
+            cam.camera = True
+            scene.visible = False
+        else:
+            cam.camera = False
+            scene.visible = True
+        try :
+            scene.light_strength += 0 #dirty trick to force the viewport to update
+        except :
+            pass
         return{'RUNNING_MODAL'}
 
 
