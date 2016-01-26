@@ -426,7 +426,7 @@ def setup(img_path):
     link20 = links.new(node_blur_mix_2.outputs[0],node_blur_math_sub.inputs[1])
     # blur link with others
     link21 = links.new(node_blur_coordinate.outputs[0],node_blur_math_add.inputs[0])
-    link22 = links.new(node_blur_math_sub.outputs[0],node_env.inputs[0])
+    link22 = links.new(node_blur_math_sub.outputs[0],node_map.inputs[0])
 
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
