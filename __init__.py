@@ -453,7 +453,7 @@ bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion",update=upda
 bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments",update=update_adjustments, default = False)
 bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update_mirror, default = False)
 bpy.types.Scene.adjustments_color = bpy.props.FloatVectorProperty(name = "Correction", update=update_color, subtype="COLOR", min=0, max=1, default =(0,0,0))
-bpy.types.Scene.blur = bpy.props.FloatProperty(name = "Blur", update=update_blur, min=0, max=0.5, default = 0.0)
+bpy.types.Scene.blur = bpy.props.FloatProperty(name = "Blur", update=update_blur, min=0, max=1, default = 0.0)
 # ---------------------- GUI -----------------------
 class hdri_map(bpy.types.Panel):
     bl_idname = "OBJECT_PT_sample"
