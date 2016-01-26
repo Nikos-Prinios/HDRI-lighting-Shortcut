@@ -218,8 +218,8 @@ def apply_parameters():
     node_rgb.inputs[0].default_value = scene.adjustments_color[0]
     node_rgb.inputs[1].default_value = scene.adjustments_color[1]
     node_rgb.inputs[2].default_value = scene.adjustments_color[2]
-    node_math.inputs[1].default_value = scene.light_strength
-    node_math_add.inputs[1].default_value = scene.main_light_strength
+    node_math_add.inputs[1].default_value = scene.light_strength
+    node_math.inputs[1].default_value = scene.main_light_strength
     node_sat.inputs[1].default_value = scene.sat
     node_sat.inputs[0].default_value = scene.hue
     node_rflx_math_add.inputs[1].default_value = scene.reflexion
