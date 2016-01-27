@@ -199,7 +199,7 @@ def update_reflexion(self, context):
 
 def reset():
     self = bpy.context.scene
-    self.visible = False
+    self.visible = True
     self.adjustments_prop = False
     self.mirror = False
     self.world.cycles_visibility.camera = False
@@ -443,8 +443,8 @@ def update_blur(self,context):
 
 # ----------------- Custom Prop --------------------
 bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation",update=update_orientation, max = 360, min = 0, default = 0, unit='ROTATION')
-bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Ambient",update=update_strength, default = 0.5)
-bpy.types.Scene.main_light_strength = bpy.props.FloatProperty(name="Main",update=update_main_strength, default = 0.1)
+bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Ambient",update=update_strength, default = 0.5, precision=3)
+bpy.types.Scene.main_light_strength = bpy.props.FloatProperty(name="Main",update=update_main_strength, default = 0.1, precision=3)
 bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')  
 bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible",description="Switch on/off the visibility of the background",default = True)
 bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation",update=update_sat, max = 2, min = 0, default = 1)
