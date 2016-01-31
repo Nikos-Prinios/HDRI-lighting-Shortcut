@@ -479,11 +479,11 @@ class hdri_map(bpy.types.Panel):
             row = layout.row(align=True)
             row.active = True   
             row.operator("nodes.img", icon="WORLD")
-            row.operator("remove.setup", icon="X")
             if scene.visible == True:
                 row.operator("visible.img", icon="RESTRICT_VIEW_OFF")
             else:
                 row.operator("visible.img", icon="RESTRICT_VIEW_ON")
+            row.operator("remove.setup", icon="X")
             row = layout.row()
             
             
