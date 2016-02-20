@@ -454,6 +454,8 @@ bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments",upd
 bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update_mirror, default = False)
 bpy.types.Scene.adjustments_color = bpy.props.FloatVectorProperty(name = "Correction", update=update_color, subtype="COLOR", min=0, max=1, default =(0,0,0))
 bpy.types.Scene.blur = bpy.props.FloatProperty(name = "Blur", update=update_blur, min=0, max=1, default = 0.0)
+
+
 # ---------------------- GUI -----------------------
 class hdri_map(bpy.types.Panel):
     bl_idname = "OBJECT_PT_sample"
@@ -463,37 +465,32 @@ class hdri_map(bpy.types.Panel):
     bl_context = "world"
     
     def draw(self, context):
-        global adjustments
+        global adjustments, img_path
         try:
             img = current_bkgnd()
         except:
             img = ''
         layout = self.layout
         scene = bpy.context.scene
-        
-        
+
         if not node_tree_ok():
-            row = layout.row()   
+            row = layout.row()
             row.operator("nodes.img", icon="WORLD")
         if node_tree_ok():
             row = layout.row(align=True)
-            row.active = True   
-            row.operator("nodes.img", icon="WORLD")
+            row.active = True
+            if not img_path == "":
+                row.operator("nodes.img", icon="WORLD", text=os.path.basename(img))
+            else:
+                row.operator("nodes.img", icon="WORLD")
             if scene.visible == True:
                 row.operator("visible.img", icon="RESTRICT_VIEW_OFF")
             else:
                 row.operator("visible.img", icon="RESTRICT_VIEW_ON")
             row.operator("remove.setup", icon="X")
             row = layout.row()
-            
-            
-           
             box = layout.box()
             row = box.row()
-            row.label(os.path.basename(img), icon='FILE_IMAGE')
-            row.prop(scene, "mirror")
-            row = box.row()
-          
             row.label("Light sources")
             row = box.row()
             row.prop(scene, "light_strength")
@@ -502,6 +499,8 @@ class hdri_map(bpy.types.Panel):
             row.prop(scene, "orientation")
             row = box.row()
             row.prop(scene, "adjustments_prop")
+            row.prop(scene, "mirror")
+
             if adjustments == True:
                 row = box.row()
                 row.prop(scene, "sat")
