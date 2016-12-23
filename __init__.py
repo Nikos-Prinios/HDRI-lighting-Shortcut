@@ -5,7 +5,7 @@
 #  as published by Sam Hocevar. See http://www.wtfpl.net/ for more details.
 
 bl_info = {
-    "name": "HDRI lighting Shortcut",
+    "name": "HDRI-lighting-Shortcut",
     "author": "Nicolas Priniotakis (Nikos)",
     "version": (1,3,2,0),
     "blender": (2, 7, 6, 0),
@@ -539,6 +539,7 @@ class OBJECT_OT_load_img(bpy.types.Operator):
             user_preferences = bpy.context.user_preferences
             addon_prefs = user_preferences.addons['HDRI-lighting-Shortcut'].preferences
             folder_path = addon_prefs.folder_path
+            print(folder_path)
         except:
             pass
         self.filepath = folder_path 
