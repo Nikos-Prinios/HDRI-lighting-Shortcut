@@ -542,11 +542,7 @@ class OBJECT_OT_load_img(bpy.types.Operator):
         folder_path = '//'
         try:
             user_preferences = bpy.context.user_preferences
-<<<<<<< HEAD
             addon_prefs = user_preferences.addons[name].preferences
-=======
-            addon_prefs = user_preferences.addons['HDRI-lighting-Shortcut-master'].preferences
->>>>>>> origin/master
             folder_path = addon_prefs.folder_path
             print(folder_path)
         except:
