@@ -22,17 +22,14 @@ from bpy.types import Operator, AddonPreferences
 import getpass
 import os
 
-global nodes,folder_path, pref, img_path, real_HDR, adjustments, name
+global nodes,folder_path, pref, img_path, real_HDR, adjustments
 global node_coo,node_map,node_rgb,node_add,node_sat,node_env,node_math,node_math_add,node_bkgnd,node_out,node_light_path,node_rflx_math,node_rflx_math_add
 
 real_HDR = False
 adjustments = False
 img_path = None
 
-# get add-on's name (for some reasons)
-for n in bpy.context.user_preferences.addons.keys():
-    if 'lighting' in n and 'Shortcut' in n:
-        name = n
+
     
 # ----------------- functions --------------------
 
@@ -538,15 +535,22 @@ class OBJECT_OT_load_img(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        global folder_path, name
-        folder_path = '//'
+        global folder_path
+
+        # get add-on's name (for some reasons)
+        for n in bpy.context.user_preferences.addons.keys():
+            if 'lighting' in n and 'Shortcut' in n:
+                name = n
+                break
         try:
             user_preferences = bpy.context.user_preferences
             addon_prefs = user_preferences.addons[name].preferences
             folder_path = addon_prefs.folder_path
-            print(folder_path)
         except:
+            folder_path = '//'
             pass
+
+        print(folder_path)
         self.filepath = folder_path 
         wm = context.window_manager
         wm.fileselect_add(self)
