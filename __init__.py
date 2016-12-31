@@ -1,4 +1,4 @@
-#  2015 Nicolas Priniotakis (Nikos) - nikos@easy-logging.net
+#  2015-2017 Nicolas Priniotakis (Nikos) - nikos@easy-logging.net
 #
 #  This work is free. You can redistribute it and/or modify it under the
 #  terms of the Do What The Fuck You Want To Public License, Version 2,
@@ -8,7 +8,7 @@ bl_info = {
     "name": "HDRI-lighting-Shortcut",
     "author": "Nicolas Priniotakis (Nikos)",
     "version": (1,3,2,2),
-    "blender": (2, 7, 6, 0),
+    "blender": (2, 7, 8, 0),
     "api": 44539,
     "category": "Material",
     "location": "Properties > World",
@@ -152,7 +152,6 @@ def update_mirror(self, context):
 def update_orientation(self, context):
     try :
         node_map.rotation[2] = self.orientation
-        #node_map.rotation[2] = (self.orientation * 0.0174533)
     except :
         pass
 
@@ -271,11 +270,10 @@ def setup(img_path):
     bpy.context.space_data.shader_type = 'WORLD'
     tree_name = "HDRI Lighting Shortcut"
 
-
-    if node_tree_exists(tree_name):
-        bpy.context.scene.world.use_nodes = True
+    if node_tree_exists(tree_name) :
         nw_world = bpy.data.worlds[world_num(tree_name)]
         bpy.context.scene.world = nw_world
+        bpy.context.scene.world.use_nodes = True
         clear_node_tree()
     else:
         nw_world = bpy.data.worlds.new(tree_name)
