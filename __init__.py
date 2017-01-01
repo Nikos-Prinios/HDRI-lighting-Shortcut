@@ -1,4 +1,4 @@
-#  2015-2017 Nicolas Priniotakis (Nikos) - nikos@easy-logging.net
+#  2015 - 2017 Nicolas Priniotakis (Nikos) - nikos@easy-logging.net
 #
 #  This work is free. You can redistribute it and/or modify it under the
 #  terms of the Do What The Fuck You Want To Public License, Version 2,
@@ -449,7 +449,7 @@ bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')
 bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible",description="Switch on/off the visibility of the background",default = True)
 bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation",update=update_sat, max = 2, min = 0, default = 1)
 bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue",update=update_hue, max = 1, min = 0, default = .5)
-bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Reflexion",update=update_reflexion, default = 1)
+bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Exposure",update=update_reflexion, default = 1)
 bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments",update=update_adjustments, default = False)
 bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball",update=update_mirror, default = False)
 bpy.types.Scene.adjustments_color = bpy.props.FloatVectorProperty(name = "Correction", update=update_color, subtype="COLOR", min=0, max=1, default =(0,0,0))
