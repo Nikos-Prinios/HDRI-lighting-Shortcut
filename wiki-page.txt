@@ -1,3 +1,5 @@
+Extensions:2.5/Py/Scripts/material/HDRI Lighting Shortcut
+
 {{ScriptInfo
 |name= HDRI Lighting Shortcut
 |tooltip= Easy setup for HDRI global lighting
