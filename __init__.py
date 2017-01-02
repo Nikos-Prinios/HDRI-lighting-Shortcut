@@ -501,6 +501,7 @@ def setup(img_path):
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
     bpy.context.area.type = 'PROPERTIES'
+    update_visible()
 
 
 def update_color(self, context):
