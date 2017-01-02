@@ -248,9 +248,9 @@ def update_visible(self, context):
 
 def check_visible():
     if bpy.types.Scene.visible:
-        bpy.data.worlds['HDRI Lighting Shortcut'].world.cycles_visibility.camera = True
+        bpy.data.worlds['HDRI Lighting Shortcut'].cycles_visibility.camera = True
     else:
-        bpy.data.worlds['HDRI Lighting Shortcut'].world.cycles_visibility.camera = False
+        bpy.data.worlds['HDRI Lighting Shortcut'].cycles_visibility.camera = False
     try:
         bpy.types.Scene.light_strength += 0  # dirty trick to force the viewport to update
     except:
