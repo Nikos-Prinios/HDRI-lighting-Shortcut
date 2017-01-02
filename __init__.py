@@ -222,11 +222,10 @@ def update_main_strength(self, context):
 
 
 def update_visible(self, context):
-    cam = self.world.cycles_visibility
     if self.visible:
-        cam.camera = True
+        self.world.cycles_visibility.camera = True
     else:
-        cam.camera = False
+        self.world.cycles_visibility.camera = False
     try:
         self.light_strength += 0  # dirty trick to force the viewport to update
     except:
@@ -272,7 +271,8 @@ def apply_parameters():
     node_sat.inputs[1].default_value = scene.sat
     node_sat.inputs[0].default_value = scene.hue
     node_rflx_math_add.inputs[1].default_value = scene.reflexion
-
+    update_visible()
+    
     if scene.mirror:
         node_env.projection = 'MIRROR_BALL'
     else:
@@ -290,7 +290,7 @@ def clear_node_tree():
 
 # -------------------------------------------------------------
 # True if user checks the color adjustments' box
-# Fasle: reset color adjustments to initial values
+# False: reset color adjustments to initial values
 # -------------------------------------------------------------
 def update_adjustments(self, context):
     global adjustments
@@ -501,7 +501,6 @@ def setup(img_path):
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
     bpy.context.area.type = 'PROPERTIES'
-    update_visible()
 
 
 def update_color(self, context):
