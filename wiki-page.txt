@@ -9,7 +9,7 @@ Extensions:2.5/Py/Scripts/material/HDRI Lighting Shortcut
 |blender= 2.78+
 |category= Material
 |author= [https://www.blendernetwork.org/nicolas-priniotakis-Nikos Priniotakis]
-|license= GPL2
+|license= GPL2 
 |distribution= Extern
 |note= 
 |exe= HDRI-lighting-Shortcut-master.zip
