@@ -246,6 +246,17 @@ def update_visible(self, context):
         pass
 
 
+def check_visible():
+    if bpy.types.Scene.visible:
+        bpy.data.worlds['HDRI Lighting Shortcut'].world.cycles_visibility.camera = True
+    else:
+        bpy.data.worlds['HDRI Lighting Shortcut'].world.cycles_visibility.camera = False
+    try:
+        bpy.types.Scene.light_strength += 0  # dirty trick to force the viewport to update
+    except:
+        pass
+
+
 def update_reflexion(self, context):
     try:
         node_rflx_math_add.inputs[1].default_value = self.reflexion
@@ -285,7 +296,7 @@ def apply_parameters():
     node_sat.inputs[1].default_value = scene.sat
     node_sat.inputs[0].default_value = scene.hue
     node_rflx_math_add.inputs[1].default_value = scene.reflexion
-    update_visible(bpy.types.Scene.visible, bpy.context)
+    check_visible()
     
     if scene.mirror:
         node_env.projection = 'MIRROR_BALL'
