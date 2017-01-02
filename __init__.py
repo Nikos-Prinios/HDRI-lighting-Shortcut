@@ -285,7 +285,7 @@ def apply_parameters():
     node_sat.inputs[1].default_value = scene.sat
     node_sat.inputs[0].default_value = scene.hue
     node_rflx_math_add.inputs[1].default_value = scene.reflexion
-    update_visible(bpy.types.Scene.visible, context)
+    update_visible(bpy.types.Scene.visible, bpy.context)
     
     if scene.mirror:
         node_env.projection = 'MIRROR_BALL'
