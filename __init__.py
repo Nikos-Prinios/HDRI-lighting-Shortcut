@@ -44,21 +44,6 @@ global node_bkgnd, node_out, node_light_path, node_rflx_math, node_rflx_math_add
 adjustments = False
 img_path = None
 
-### CUSTOM PROPS ----------------------------------------------------
-bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation", update=update_orientation, max=360, min=0, default=0, unit='ROTATION')
-bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Ambient", update=update_strength, default=0.5, precision=3)
-bpy.types.Scene.main_light_strength = bpy.props.FloatProperty(name="Main", update=update_main_strength, default=0.1, precision=3)
-bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')
-bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible", description="Switch on/off the visibility of the background", default=True)
-bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation", update=update_sat, max=2, min=0, default=1)
-bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue", update=update_hue, max=1, min=0, default=.5)
-bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Exposure", update=update_reflexion, default=1)
-bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments", update=update_adjustments, default=False)
-bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball", update=update_mirror, default=False)
-bpy.types.Scene.adjustments_color = bpy.props.FloatVectorProperty(name="Correction", update=update_color, subtype="COLOR", min=0, max=1, default=(0, 0, 0))
-bpy.types.Scene.blur = bpy.props.FloatProperty(name="Blur", update=update_blur, min=0, max=1, default=0.0)
-
-
 ### FUNCTIONS ------------------------------------------------------
 def img_exists(img):
     for index, i in enumerate(bpy.data.images):
@@ -537,7 +522,22 @@ def update_color(self, context):
 def update_blur(self, context):
     node_blur_mix_1.inputs[0].default_value = self.blur
     node_blur_mix_2.inputs[0].default_value = self.blur
- 
+
+
+### CUSTOM PROPS ----------------------------------------------------
+bpy.types.Scene.orientation = bpy.props.FloatProperty(name="Orientation", update=update_orientation, max=360, min=0, default=0, unit='ROTATION')
+bpy.types.Scene.light_strength = bpy.props.FloatProperty(name="Ambient", update=update_strength, default=0.5, precision=3)
+bpy.types.Scene.main_light_strength = bpy.props.FloatProperty(name="Main", update=update_main_strength, default=0.1, precision=3)
+bpy.types.Scene.filepath = bpy.props.StringProperty(subtype='FILE_PATH')
+bpy.types.Scene.visible = bpy.props.BoolProperty(update=update_visible, name="Visible", description="Switch on/off the visibility of the background", default=True)
+bpy.types.Scene.sat = bpy.props.FloatProperty(name="Saturation", update=update_sat, max=2, min=0, default=1)
+bpy.types.Scene.hue = bpy.props.FloatProperty(name="Hue", update=update_hue, max=1, min=0, default=.5)
+bpy.types.Scene.reflexion = bpy.props.FloatProperty(name="Exposure", update=update_reflexion, default=1)
+bpy.types.Scene.adjustments_prop = bpy.props.BoolProperty(name="Adjustments", update=update_adjustments, default=False)
+bpy.types.Scene.mirror = bpy.props.BoolProperty(name="Mirror Ball", update=update_mirror, default=False)
+bpy.types.Scene.adjustments_color = bpy.props.FloatVectorProperty(name="Correction", update=update_color, subtype="COLOR", min=0, max=1, default=(0, 0, 0))
+bpy.types.Scene.blur = bpy.props.FloatProperty(name="Blur", update=update_blur, min=0, max=1, default=0.0)
+
 
 ### ADD-ON'S GUI -----------------------------------------------------
 class hdri_map(bpy.types.Panel):
