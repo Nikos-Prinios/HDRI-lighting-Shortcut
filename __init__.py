@@ -710,6 +710,7 @@ def register():
     if mod is not None:
         info = addon_utils.module_bl_info(mod)
         info["show_expanded"] = True
+        print(mod)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
