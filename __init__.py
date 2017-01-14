@@ -705,7 +705,11 @@ class OBJECT_OT_addon_prefs(Operator):
 # REGISTRATION ------------------------------------------------------
 def register():
     bpy.utils.register_module(__name__)
-
+    import addon_utils
+    mod = addon_utils.addons_fake_modules.get(__name__)
+    if mod is not None:
+        info = addon_utils.module_bl_info(mod)
+        info["show_expanded"] = True
 
 def unregister():
     bpy.utils.unregister_module(__name__)
