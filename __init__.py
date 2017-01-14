@@ -87,46 +87,26 @@ def node_attrib():
     nodes = bpy.context.scene.world.node_tree.nodes
     try:
         for node in nodes:
-            if node.name == 'COORDINATE':
-                node_coo = node
-            if node.name == 'MAPPING':
-                node_map = node
-            if node.name == 'COMBINE':
-                node_rgb = node
-            if node.name == 'RGB_ADD':
-                node_add = node
-            if node.name == 'SATURATION':
-                node_sat = node
-            if node.name == 'ENVIRONMENT':
-                node_env = node
-            if node.name == 'HLS_MATH':
-                node_math = node
-            if node.name == 'HLS_MATH_ADD':
-                node_math_add = node
-            if node.name == 'BACKGROUND':
-                node_bkgnd = node
-            if node.name == 'OUTPUT':
-                node_out = node
-            if node.name == "LIGHT_PATH":
-                node_light_path = node
-            if node.name == 'REFLEXION':
-                node_reflexion = node
-            if node.name == "RFLX_MATH":
-                node_rflx_math = node
-            if node.name == "RFLX_MATH_ADD":
-                node_rflx_math_add = node
-            if node.name == "BLUR_NOISE":
-                node_blur_noise = node
-            if node.name == "BLUR_COORDINATE":
-                node_blur_coordinate = node
-            if node.name == "BLUR_MIX_1":
-                node_blur_mix_1 = node
-            if node.name == "BLUR_MIX_2":
-                node_blur_mix_2 = node
-            if node.name == "BLUR_MATH_ADD":
-                node_blur_math_add = node
-            if node.name == "BLUR_MATH_SUB":
-                node_blur_math_sub = node
+            if node.name == 'COORDINATE': node_coo = node
+            if node.name == 'MAPPING': node_map = node
+            if node.name == 'COMBINE': node_rgb = node
+            if node.name == 'RGB_ADD': node_add = node
+            if node.name == 'SATURATION': node_sat = node
+            if node.name == 'ENVIRONMENT': node_env = node
+            if node.name == 'HLS_MATH': node_math = node
+            if node.name == 'HLS_MATH_ADD': node_math_add = node
+            if node.name == 'BACKGROUND': node_bkgnd = node
+            if node.name == 'OUTPUT': node_out = node
+            if node.name == "LIGHT_PATH": node_light_path = node
+            if node.name == 'REFLEXION': node_reflexion = node
+            if node.name == "RFLX_MATH": node_rflx_math = node
+            if node.name == "RFLX_MATH_ADD": node_rflx_math_add = node
+            if node.name == "BLUR_NOISE": node_blur_noise = node
+            if node.name == "BLUR_COORDINATE": node_blur_coordinate = node
+            if node.name == "BLUR_MIX_1": node_blur_mix_1 = node
+            if node.name == "BLUR_MIX_2": node_blur_mix_2 = node
+            if node.name == "BLUR_MATH_ADD": node_blur_math_add = node
+            if node.name == "BLUR_MATH_SUB": node_blur_math_sub = node
     except:
         pass
 
@@ -381,137 +361,132 @@ def setup(img_path):
         nodes.remove(n)
 
     ### CREATE THE NODES
-    #
     node_coo = nodes.new('ShaderNodeTexCoord')
     node_coo.location = -400, 0
     node_coo.name = 'COORDINATE'
-    #
+
     node_map = nodes.new('ShaderNodeMapping')
     node_map.name = "MAPPING"
     node_map.location = -200, 0
-    #
+
     node_rgb = nodes.new("ShaderNodeCombineRGB")
     node_rgb.name = 'COMBINE'
     node_rgb.location = 200, 200
-    #
+
     node_add = nodes.new("ShaderNodeMixRGB")
     node_add.blend_type = 'ADD'
     node_add.inputs[0].default_value = 1
     node_add.location = 400, 400
     node_add.name = 'RGB_ADD'
-    #
+
     node_sat = nodes.new("ShaderNodeHueSaturation")
     node_sat.location = 400, 200
     node_sat.name = 'SATURATION'
-    #
+
     node_env = nodes.new('ShaderNodeTexEnvironment')
     node_env.name = "ENVIRONMENT"
     node_env.image = img
     node_env.location = 200, 0
-    #
+
     node_math = nodes.new('ShaderNodeMath')
     node_math.name = "HLS_MATH"
     node_math.location = 400, -100
     node_math.operation = 'MULTIPLY'
     node_math.inputs[1].default_value = 0.1
-    #
+
     node_math_add = nodes.new('ShaderNodeMath')
     node_math_add.name = "HLS_MATH_ADD"
     node_math_add.location = 400, -300
     node_math_add.operation = 'ADD'
     node_math_add.inputs[1].default_value = 0.5
-    #
+
     node_rflx_math = nodes.new('ShaderNodeMath')
     node_rflx_math.name = "RFLX_MATH"
     node_rflx_math.location = 400, -500
     node_rflx_math.operation = 'MULTIPLY'
     node_rflx_math.inputs[1].default_value = 0.1
-    #
+
     node_rflx_math_add = nodes.new('ShaderNodeMath')
     node_rflx_math_add.name = "RFLX_MATH_ADD"
     node_rflx_math_add.location = 400, -700
     node_rflx_math_add.operation = 'ADD'
     node_rflx_math_add.inputs[1].default_value = 0.5
-    #
+
     node_bkgnd = nodes.new('ShaderNodeBackground')
     node_bkgnd.location = 600, 0
     node_bkgnd.name = 'BACKGROUND'
-    #
+
     node_reflexion = nodes.new('ShaderNodeBackground')
     node_reflexion.location = 600, -200
     node_reflexion.name = 'REFLEXION'
-    #
+
     node_light_path = nodes.new('ShaderNodeLightPath')
     node_light_path.location = 600, 400
     node_light_path.name = "LIGHT_PATH"
-    #
+
     node_ref_mix = nodes.new('ShaderNodeMixShader')
     node_ref_mix.location = 800, 0
     node_ref_mix.name = 'REF_MIX'
-
-    ## BLUR NODES
-    #
+    # Blur
     node_blur_coordinate = nodes.new('ShaderNodeTexCoord')
     node_blur_coordinate.location = -200, 800
     node_blur_coordinate.name = "BLUR_COORDINATE"
-    #
+
     node_blur_noise = nodes.new('ShaderNodeTexNoise')
     node_blur_noise.location = 0, 800
     node_blur_noise.name = "BLUR_NOISE"
     node_blur_noise.inputs[1].default_value = 10000
-    #
+
     node_blur_mix_1 = nodes.new('ShaderNodeMixRGB')
     node_blur_mix_1.location = 200, 800
     node_blur_mix_1.name = "BLUR_MIX_1"
     node_blur_mix_1.inputs[1].default_value = (0, 0, 0, 1)
     node_blur_mix_1.inputs[0].default_value = 0.0
-    #
+
     node_blur_mix_2 = nodes.new('ShaderNodeMixRGB')
     node_blur_mix_2.location = 200, 1000
     node_blur_mix_2.name = "BLUR_MIX_2"
     node_blur_mix_2.inputs[1].default_value = (0, 0, 0, 1)
     node_blur_mix_2.inputs[0].default_value = 0.0
-    #
+
     node_blur_math_add = nodes.new('ShaderNodeVectorMath')
     node_blur_math_add.location = 400, 800
     node_blur_math_add.name = "BLUR_MATH_ADD"
-    #
+
     node_blur_math_sub = nodes.new('ShaderNodeVectorMath')
     node_blur_math_sub.location = 600, 800
     node_blur_math_sub.name = "BLUR_MATH_SUB"
     node_blur_math_sub.operation = 'SUBTRACT'
-    #
+
     node_out = nodes.new('ShaderNodeOutputWorld')
     node_out.location = 1000, 0
     node_out.name = 'OUTPUT'
 
     # CREATE LINKS BETWEEN NODES
     links = tree.links
-    link0 = links.new(node_coo.outputs[0], node_map.inputs[0])
-    link1 = links.new(node_map.outputs[0], node_env.inputs[0])
-    link2 = links.new(node_rgb.outputs[0], node_add.inputs[1])
-    link3 = links.new(node_env.outputs[0], node_sat.inputs[4])
-    link4 = links.new(node_sat.outputs[0], node_add.inputs[2])
-    link5 = links.new(node_add.outputs[0], node_reflexion.inputs[0])
-    link6 = links.new(node_add.outputs[0], node_bkgnd.inputs[0])
-    link7 = links.new(node_light_path.outputs[5], node_ref_mix.inputs[0])
-    link8 = links.new(node_env.outputs[0], node_rflx_math.inputs[0])
-    link9 = links.new(node_rflx_math.outputs[0], node_rflx_math_add.inputs[0])
-    link10 = links.new(node_rflx_math_add.outputs[0], node_reflexion.inputs[1])
-    link11 = links.new(node_env.outputs[0], node_math.inputs[0])
-    link12 = links.new(node_math.outputs[0], node_math_add.inputs[0])
-    link13 = links.new(node_math_add.outputs[0], node_bkgnd.inputs[1])
-    link14 = links.new(node_bkgnd.outputs[0], node_ref_mix.inputs[1])
-    link15 = links.new(node_reflexion.outputs[0], node_ref_mix.inputs[2])
-    link16 = links.new(node_ref_mix.outputs[0], node_out.inputs[0])
-    # blur group links
-    link17 = links.new(node_blur_noise.outputs[0], node_blur_mix_1.inputs[2])
-    link18 = links.new(node_blur_mix_1.outputs[0], node_blur_math_add.inputs[1])
-    link19 = links.new(node_blur_math_add.outputs[0], node_blur_math_sub.inputs[0])
-    link20 = links.new(node_blur_mix_2.outputs[0], node_blur_math_sub.inputs[1])
-    # blur link with others
-    link21 = links.new(node_blur_coordinate.outputs[0], node_blur_math_add.inputs[0])
-    link22 = links.new(node_blur_math_sub.outputs[0], node_map.inputs[0])
+    link = links.new(node_coo.outputs[0], node_map.inputs[0])
+    link = links.new(node_map.outputs[0], node_env.inputs[0])
+    link = links.new(node_rgb.outputs[0], node_add.inputs[1])
+    link = links.new(node_env.outputs[0], node_sat.inputs[4])
+    link = links.new(node_sat.outputs[0], node_add.inputs[2])
+    link = links.new(node_add.outputs[0], node_reflexion.inputs[0])
+    link = links.new(node_add.outputs[0], node_bkgnd.inputs[0])
+    link = links.new(node_light_path.outputs[5], node_ref_mix.inputs[0])
+    link = links.new(node_env.outputs[0], node_rflx_math.inputs[0])
+    link = links.new(node_rflx_math.outputs[0], node_rflx_math_add.inputs[0])
+    link = links.new(node_rflx_math_add.outputs[0], node_reflexion.inputs[1])
+    link = links.new(node_env.outputs[0], node_math.inputs[0])
+    link = links.new(node_math.outputs[0], node_math_add.inputs[0])
+    link = links.new(node_math_add.outputs[0], node_bkgnd.inputs[1])
+    link = links.new(node_bkgnd.outputs[0], node_ref_mix.inputs[1])
+    link = links.new(node_reflexion.outputs[0], node_ref_mix.inputs[2])
+    link = links.new(node_ref_mix.outputs[0], node_out.inputs[0])
+    link = links.new(node_blur_noise.outputs[0], node_blur_mix_1.inputs[2])
+    link = links.new(node_blur_mix_1.outputs[0], node_blur_math_add.inputs[1])
+    link = links.new(node_blur_math_add.outputs[0], node_blur_math_sub.inputs[0])
+    link = links.new(node_blur_mix_2.outputs[0], node_blur_math_sub.inputs[1])
+    link = links.new(node_blur_coordinate.outputs[0], node_blur_math_add.inputs[0])
+    link = links.new(node_blur_math_sub.outputs[0], node_map.inputs[0])
 
     bpy.context.scene.world.cycles.sample_as_light = True
     bpy.context.scene.world.cycles.sample_map_resolution = img.size[0]
