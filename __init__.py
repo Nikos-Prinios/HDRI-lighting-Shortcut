@@ -23,11 +23,10 @@
 
 bl_info = {
     "name": "HDRI-lighting-Shortcut",
-    "author": "Nicolas Priniotakis (Nikos)",
-    "version": (1, 3, 2, 2),
-    "blender": (2, 7, 8, 0),
-    "api": 44539,
-    "category": "Material",
+    "author": "Nicolas Priniotakis (Nikos) and Riccardo Giovanetti",
+    "version": (1, 3, 3),
+    "blender": (2, 80, 0),
+    "category": "Lighting",
     "location": "Properties > World",
     "description": "Easy setup for HDRI global lightings",
     "warning": "",
@@ -578,7 +577,7 @@ class hdri_map(bpy.types.Panel):
             row = layout.row()
             box = layout.box()
             row = box.row()
-            row.label("Light sources")
+            row.label(text="Light sources")
             row = box.row()
             row.prop(scene, "light_strength")
             row.prop(scene, "main_light_strength")
@@ -620,13 +619,13 @@ class OBJECT_OT_load_img(bpy.types.Operator):
         global folder_path
 
         # get add-on's name (for some reasons)
-        for n in bpy.context.user_preferences.addons.keys():
+        for n in bpy.context.preferences.addons.keys():
             if 'lighting' in n and 'Shortcut' in n:
                 name = n
                 break
         try:
-            user_preferences = bpy.context.user_preferences
-            addon_prefs = user_preferences.addons[name].preferences
+            preferences = bpy.context.preferences
+            addon_prefs = preferences.addons[name].preferences
             folder_path = addon_prefs.folder_path
         except:
             folder_path = '//'
@@ -692,8 +691,8 @@ class OBJECT_OT_addon_prefs(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        user_preferences = context.user_preferences
-        addon_prefs = user_preferences.addons[__name__].preferences
+        preferences = context.preferences
+        addon_prefs = preferences.addons[__name__].preferences
 
         info = ("Path: %s" %
                 (addon_prefs.folder_path))
@@ -702,14 +701,40 @@ class OBJECT_OT_addon_prefs(Operator):
         return {'FINISHED'}
 
 
+# ANNOTATIONS -------------------------------------------------------
+
+def make_annotations(cls):
+    """Converts class fields to annotations if running with Blender 2.8"""
+    if bpy.app.version < (2, 80):
+        return cls
+    bl_props = {k: v for k, v in cls.__dict__.items() if isinstance(v, tuple)}
+    if bl_props:
+        if '__annotations__' not in cls.__dict__:
+            setattr(cls, '__annotations__', {})
+        annotations = cls.__dict__['__annotations__']
+        for k, v in bl_props.items():
+            annotations[k] = v
+            delattr(cls, k)
+    return cls
+
 # REGISTRATION ------------------------------------------------------
+
+classes = (
+	hdri_map,
+	OBJECT_OT_load_img,
+	OBJECT_OT_Remove_setup,
+	OBJECT_OT_Visible,
+	HDRI_Preferences,
+	OBJECT_OT_addon_prefs
+)
 def register():
-    bpy.utils.register_module(__name__)
+    for cls in classes:
+        make_annotations(cls) # what is this? Read the section on annotations above!
+        bpy.utils.register_class(cls)
 
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
+def unregister():  # note how unregistering is done in reverse
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":
     register()
