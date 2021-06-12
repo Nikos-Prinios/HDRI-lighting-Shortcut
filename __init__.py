@@ -183,10 +183,10 @@ def update_mirror(self, context):
 
 def update_orientation(self, context):
     try:
-        node_map.rotation[2] = self.orientation
-    except:
+        node_map.inputs[2].default_value = (self.orientation,0,0)
+    except Exception as e:
+        print(e)
         pass
-
 
 def update_sat(self, context):
     try:
@@ -729,10 +729,10 @@ classes = (
 )
 def register():
     for cls in classes:
-        make_annotations(cls) # what is this? Read the section on annotations above!
+        make_annotations(cls) 
         bpy.utils.register_class(cls)
 
-def unregister():  # note how unregistering is done in reverse
+def unregister():  
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
