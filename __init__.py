@@ -437,16 +437,26 @@ class HDRI_Open(bpy.types.Operator):
     bl_idname = "hdri.open"
 
     def execute(self, context):
-        global folder_path, img_path
-        folder_path = bpy.context.scene.render.filepath
-        bpy.context.scene.render.filepath = os.path.expanduser('~')
-        bpy.context.scene.render.use_file_extension = True
-        bpy.context.scene.render.filepath = "//"
-        bpy.ops.image.open(filepath="", directory=bpy.context.scene.render.filepath)
-        img_path = bpy.data.images[0].filepath
-        bpy.context.scene.render.filepath = folder_path
-        bpy.ops.image.open(filepath=img_path)
-        return {'FINISHED'}
+    global folder_path, img_path
+    folder_path = bpy.context.scene.render.filepath
+    original_filepath = bpy.context.scene.render.filepath  # Store the original filepath
+
+    bpy.context.scene.render.filepath = "//"  # Set the filepath to the blend file's directory
+    bpy.context.scene.render.use_file_extension = True  # Ensure file extensions are used
+
+    try:
+        bpy.ops.image.open()  # Open the file dialog
+        selected_image = bpy.context.window_manager.fileselect_add
+        if selected_image:  # Check if an image is selected
+            img_path = selected_image[0].name  # Get the filepath of the selected image
+            bpy.ops.image.open(filepath=img_path)  # Open the selected image
+    except Exception as e:
+        print("Error:", e)
+    finally:
+        bpy.context.scene.render.filepath = original_filepath  # Restore the original filepath
+
+    return {'FINISHED'}
+
 
 
 class HDRI_Reset(bpy.types.Operator):
