@@ -87,8 +87,8 @@ class HDRI_Properties(PropertyGroup):
     orientation: FloatProperty(
         name="Rotation",
         description="Rotates the HDRI",
-        min=-3.14159,
-        max=3.14159,
+        min=0.0,
+        max=360.0,  # Changed to degrees instead of radians
         default=0.0,
         update=update_orientation
     )
@@ -99,6 +99,7 @@ class HDRI_Properties(PropertyGroup):
         min=0.0,
         max=2.0,
         default=1.0,
+        precision=2,
         update=update_hue_sat
     )
 
@@ -107,7 +108,8 @@ class HDRI_Properties(PropertyGroup):
         description="Sets the Hue level",
         min=-1.0,
         max=1.0,
-        default=0.0,
+        default=0.5,
+        precision=2,
         update=update_hue_sat
     )
 
@@ -117,12 +119,13 @@ class HDRI_Properties(PropertyGroup):
         min=0.0,
         max=5.0,
         default=1.0,
+        precision=3,
         update=update_strength
     )
 
     visible: BoolProperty(
-        name="Visible",
-        description="Sets the visibility of the HDRI in render",
+        name="Adjustments",
+        description="Show/hide adjustment controls",
         default=True,
         update=update_visibility
     )
@@ -222,15 +225,41 @@ class HDRI_PT_Panel(Panel):
         scene = context.scene
         hdri_props = scene.hdri_props
 
-        layout.operator("hdri.setup", text="Setup HDRI World")
-        layout.operator("hdri.load_image", text="Load HDRI")
+        # Setup and Load buttons in a row
+        row = layout.row()
+        row.operator("hdri.setup", text="Setup HDRI World")
+        row.operator("hdri.load_image", text="Load HDRI")
 
-        layout.prop(hdri_props, "mirror")
-        layout.prop(hdri_props, "orientation")
-        layout.prop(hdri_props, "sat")
-        layout.prop(hdri_props, "hue")
-        layout.prop(hdri_props, "light_strength")
-        layout.prop(hdri_props, "visible")
+        # Light sources section
+        box = layout.box()
+        box.label(text="Light sources")
+
+        row = box.row()
+        split = row.split(factor=0.5)
+        col1 = split.column()
+        col2 = split.column()
+
+        # Left column
+        col1.prop(hdri_props, "light_strength", text="Exposure")
+
+
+        # Right column
+        col2.prop(hdri_props, "orientation", text="Orientation")
+        col2.prop(hdri_props, "mirror", text="Mirror Ball", icon='CHECKBOX_HLT' if hdri_props.mirror else 'CHECKBOX_DEHLT')
+
+        # Adjustments section
+        box = layout.box()
+        row = box.row()
+        row.prop(hdri_props, "visible", text="Visible")
+
+        row = box.row()
+        split = row.split(factor=0.5)
+        col1 = split.column()
+        col2 = split.column()
+
+        col1.prop(hdri_props, "sat", text="Saturation")
+        col2.prop(hdri_props, "hue", text="Hue")
+
 
 # Register/unregister
 def register():
